@@ -8,21 +8,29 @@ import { Task } from "@/types";
 import { cn } from "@/lib/utils";
 
 const HOURS_PER_DAY = 8;
-const DAYS_TO_SHOW = 28;
+
+const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
 type Props = {
   startDate: Date;
+  businessDaysOnly: boolean;
   onCellClick: (memberId: string, date: string) => void;
   onTaskClick: (taskId: string) => void;
 };
 
-export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
+export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskClick }: Props) {
   const { members, tasks, projects } = usePlannerStore();
 
-  const days = useMemo(() =>
-    Array.from({ length: DAYS_TO_SHOW }, (_, i) => addDays(startDate, i)),
-    [startDate]
-  );
+  const days = useMemo(() => {
+    const result: Date[] = [];
+    let cursor = startDate;
+    const target = businessDaysOnly ? 20 : 28;
+    while (result.length < target) {
+      if (!businessDaysOnly || !isWeekend(cursor)) result.push(cursor);
+      cursor = addDays(cursor, 1);
+    }
+    return result;
+  }, [startDate, businessDaysOnly]);
 
   const getTasksForCell = (memberId: string, date: Date) =>
     tasks.filter(
@@ -51,13 +59,13 @@ export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
               メンバー
             </th>
             {days.map((d) => {
-              const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+              const weekend = isWeekend(d);
               return (
                 <th
                   key={d.toISOString()}
                   className={cn(
                     "border border-gray-200 px-1 py-2 w-16 text-center font-normal",
-                    isWeekend ? "bg-gray-50 text-gray-400" : "bg-white text-gray-600"
+                    weekend ? "bg-gray-50 text-gray-400" : "bg-white text-gray-600"
                   )}
                 >
                   <div className="font-semibold">{format(d, "M/d")}</div>
@@ -81,7 +89,7 @@ export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
               </td>
               {days.map((d) => {
                 const dateStr = format(d, "yyyy-MM-dd");
-                const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                const weekend = isWeekend(d);
                 const usedHours = getHoursForCell(member.id, d);
                 const cellTasks = getTasksForCell(member.id, d);
                 const isOver = usedHours > HOURS_PER_DAY;
@@ -91,12 +99,11 @@ export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
                     key={dateStr}
                     className={cn(
                       "border border-gray-200 p-0 align-top h-16 cursor-pointer hover:bg-blue-50 transition-colors relative",
-                      isWeekend && "bg-gray-50 cursor-default hover:bg-gray-50",
+                      weekend && "bg-gray-50 cursor-default hover:bg-gray-50",
                       isOver && "bg-red-50"
                     )}
-                    onClick={() => !isWeekend && onCellClick(member.id, dateStr)}
+                    onClick={() => !weekend && onCellClick(member.id, dateStr)}
                   >
-                    {/* task blocks — proportional height to placed hours / 8h */}
                     <div className="absolute inset-0 flex flex-col-reverse overflow-hidden">
                       {cellTasks.map((task) => {
                         const placement = task.placements.find(
@@ -127,8 +134,7 @@ export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
                         );
                       })}
                     </div>
-                    {/* hours label bottom-right */}
-                    {!isWeekend && (
+                    {!weekend && (
                       <div className={cn(
                         "absolute bottom-0 right-0.5 text-[9px] z-10",
                         isOver ? "text-red-600 font-bold" : "text-gray-400"

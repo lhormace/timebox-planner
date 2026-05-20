@@ -17,6 +17,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
   const [placementTaskId, setPlacementTaskId] = useState<string | undefined>();
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
 
   const { tasks, projects, members } = usePlannerStore();
 
@@ -75,11 +76,21 @@ export default function Home() {
           今日
         </Button>
         <span className="text-sm text-gray-600 font-medium">
-          {format(startDate, "yyyy年M月d日")} 〜 {format(addDays(startDate, 27), "M月d日")}
+          {format(startDate, "yyyy年M月d日")} 〜
         </span>
         <Button variant="outline" size="sm" onClick={() => setStartDate((d) => addDays(d, 7))}>
           次週 →
         </Button>
+
+        <label className="ml-auto flex items-center gap-2 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={businessDaysOnly}
+            onChange={(e) => setBusinessDaysOnly(e.target.checked)}
+            className="w-4 h-4 accent-indigo-500 cursor-pointer"
+          />
+          <span className="text-sm text-gray-600">営業日のみ表示</span>
+        </label>
       </div>
 
       {/* Member legend */}
@@ -97,6 +108,7 @@ export default function Home() {
       <main className="px-6 pb-8">
         <TimelineGrid
           startDate={startDate}
+          businessDaysOnly={businessDaysOnly}
           onCellClick={handleCellClick}
           onTaskClick={(taskId) => setPlacementTaskId(taskId)}
         />
