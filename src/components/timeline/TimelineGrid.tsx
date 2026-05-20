@@ -90,53 +90,52 @@ export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
                   <td
                     key={dateStr}
                     className={cn(
-                      "border border-gray-200 p-0.5 align-top h-16 cursor-pointer hover:bg-blue-50 transition-colors",
-                      isWeekend && "bg-gray-50",
+                      "border border-gray-200 p-0 align-top h-16 cursor-pointer hover:bg-blue-50 transition-colors relative",
+                      isWeekend && "bg-gray-50 cursor-default hover:bg-gray-50",
                       isOver && "bg-red-50"
                     )}
                     onClick={() => !isWeekend && onCellClick(member.id, dateStr)}
                   >
-                    <div className="flex flex-col gap-0.5 h-full">
-                      {/* capacity bar */}
-                      <div className="h-1 rounded-full bg-gray-200 overflow-hidden">
-                        <div
-                          className={cn(
-                            "h-full rounded-full transition-all",
-                            isOver ? "bg-red-500" : "bg-green-400"
-                          )}
-                          style={{ width: `${Math.min((usedHours / HOURS_PER_DAY) * 100, 100)}%` }}
-                        />
-                      </div>
-                      {/* task blocks */}
-                      <div className="flex flex-col gap-0.5 flex-1 overflow-hidden">
-                        {cellTasks.map((task) => {
-                          const placement = task.placements.find(
-                            (p) => isSameDay(parseISO(p.date), d)
-                          );
-                          const project = projects.find((p) => p.id === task.projectId);
-                          const overDl = isOverDeadline(task, d);
-                          return (
-                            <div
-                              key={task.id}
-                              className={cn(
-                                "rounded px-1 text-[10px] text-white truncate leading-4 cursor-pointer hover:brightness-90 active:brightness-75",
-                                overDl && "ring-1 ring-red-500"
-                              )}
-                              style={{ backgroundColor: project?.color ?? "#6366f1" }}
-                              title={`${task.title} (${placement?.hours}h) — クリックして配置を管理`}
-                              onClick={(e) => { e.stopPropagation(); onTaskClick(task.id); }}
-                            >
-                              {task.title} {placement?.hours}h
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {!isWeekend && (
-                        <div className={cn("text-[9px] text-right pr-0.5", isOver ? "text-red-500 font-bold" : "text-gray-400")}>
-                          {usedHours}/{HOURS_PER_DAY}h
-                        </div>
-                      )}
+                    {/* task blocks — proportional height to placed hours / 8h */}
+                    <div className="absolute inset-0 flex flex-col-reverse overflow-hidden">
+                      {cellTasks.map((task) => {
+                        const placement = task.placements.find(
+                          (p) => isSameDay(parseISO(p.date), d)
+                        );
+                        const hours = placement?.hours ?? 0;
+                        const heightPct = Math.min((hours / HOURS_PER_DAY) * 100, 100);
+                        const project = projects.find((p) => p.id === task.projectId);
+                        const overDl = isOverDeadline(task, d);
+                        return (
+                          <div
+                            key={task.id}
+                            className={cn(
+                              "w-full flex items-start px-1 pt-0.5 cursor-pointer hover:brightness-90 active:brightness-75 overflow-hidden flex-shrink-0",
+                              overDl && "outline outline-1 outline-red-500 outline-offset-[-1px]"
+                            )}
+                            style={{
+                              backgroundColor: project?.color ?? "#6366f1",
+                              height: `${heightPct}%`,
+                            }}
+                            title={`${task.title} (${hours}h) — クリックして配置を管理`}
+                            onClick={(e) => { e.stopPropagation(); onTaskClick(task.id); }}
+                          >
+                            <span className="text-[10px] text-white leading-4 truncate">
+                              {task.title} {hours}h
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
+                    {/* hours label bottom-right */}
+                    {!isWeekend && (
+                      <div className={cn(
+                        "absolute bottom-0 right-0.5 text-[9px] z-10",
+                        isOver ? "text-red-600 font-bold" : "text-gray-400"
+                      )}>
+                        {usedHours}/{HOURS_PER_DAY}h
+                      </div>
+                    )}
                   </td>
                 );
               })}
