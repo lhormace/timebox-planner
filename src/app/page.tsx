@@ -5,6 +5,7 @@ import { addDays, subDays, format, startOfToday } from "date-fns";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
 import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
+import { MemberDialog } from "@/components/member/MemberDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ export default function Home() {
   const [selectedMemberId, setSelectedMemberId] = useState<string | undefined>();
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
   const [placementTaskId, setPlacementTaskId] = useState<string | undefined>();
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false);
 
   const { tasks, projects, members } = usePlannerStore();
 
@@ -48,6 +50,9 @@ export default function Home() {
           <span className="text-sm text-gray-500">
             配置済 <strong>{totalPlaced}h</strong> / 総見積 <strong>{totalEstimated}h</strong>
           </span>
+          <Button variant="outline" size="sm" onClick={() => setMemberDialogOpen(true)}>
+            メンバー管理
+          </Button>
           <Button
             size="sm"
             onClick={() => {
@@ -110,6 +115,8 @@ export default function Home() {
           <TaskPlacementDialog task={task} onClose={() => setPlacementTaskId(undefined)} />
         ) : null;
       })()}
+
+      {memberDialogOpen && <MemberDialog onClose={() => setMemberDialogOpen(false)} />}
     </div>
   );
 }
