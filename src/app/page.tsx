@@ -4,6 +4,7 @@ import { useState } from "react";
 import { addDays, subDays, format, startOfToday } from "date-fns";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
+import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,7 @@ export default function Home() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string | undefined>();
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
+  const [placementTaskId, setPlacementTaskId] = useState<string | undefined>();
 
   const { tasks, projects, members } = usePlannerStore();
 
@@ -83,12 +85,16 @@ export default function Home() {
             <span className="text-xs text-gray-600">{m.name}</span>
           </div>
         ))}
-        <span className="text-xs text-gray-400 ml-auto">セルをクリックしてタスクを配置</span>
+        <span className="text-xs text-gray-400 ml-auto">空セル: 新規タスク　タスクブロック: 配置を管理</span>
       </div>
 
       {/* Timeline */}
       <main className="px-6 pb-8">
-        <TimelineGrid startDate={startDate} onCellClick={handleCellClick} />
+        <TimelineGrid
+          startDate={startDate}
+          onCellClick={handleCellClick}
+          onTaskClick={(taskId) => setPlacementTaskId(taskId)}
+        />
       </main>
 
       <TaskDialog
@@ -97,6 +103,13 @@ export default function Home() {
         defaultDate={selectedDate}
         onClose={() => setDialogOpen(false)}
       />
+
+      {(() => {
+        const task = placementTaskId ? tasks.find((t) => t.id === placementTaskId) : undefined;
+        return task ? (
+          <TaskPlacementDialog task={task} onClose={() => setPlacementTaskId(undefined)} />
+        ) : null;
+      })()}
     </div>
   );
 }

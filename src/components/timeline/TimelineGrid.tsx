@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { addDays, format, startOfWeek, isSameDay, parseISO, isAfter } from "date-fns";
+import { addDays, format, isSameDay, parseISO, isAfter } from "date-fns";
 import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
@@ -13,9 +13,10 @@ const DAYS_TO_SHOW = 28;
 type Props = {
   startDate: Date;
   onCellClick: (memberId: string, date: string) => void;
+  onTaskClick: (taskId: string) => void;
 };
 
-export function TimelineGrid({ startDate, onCellClick }: Props) {
+export function TimelineGrid({ startDate, onCellClick, onTaskClick }: Props) {
   const { members, tasks, projects } = usePlannerStore();
 
   const days = useMemo(() =>
@@ -118,11 +119,12 @@ export function TimelineGrid({ startDate, onCellClick }: Props) {
                             <div
                               key={task.id}
                               className={cn(
-                                "rounded px-1 text-[10px] text-white truncate leading-4",
+                                "rounded px-1 text-[10px] text-white truncate leading-4 cursor-pointer hover:brightness-90 active:brightness-75",
                                 overDl && "ring-1 ring-red-500"
                               )}
                               style={{ backgroundColor: project?.color ?? "#6366f1" }}
-                              title={`${task.title} (${placement?.hours}h)`}
+                              title={`${task.title} (${placement?.hours}h) — クリックして配置を管理`}
+                              onClick={(e) => { e.stopPropagation(); onTaskClick(task.id); }}
                             >
                               {task.title} {placement?.hours}h
                             </div>
