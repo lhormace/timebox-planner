@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import { addDays, format, isSameDay, parseISO, isAfter } from "date-fns";
 import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
@@ -11,6 +11,8 @@ const HOURS_PER_DAY = 8;
 
 const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
 
+type DragState = { taskId: string; memberId: string; hours: number };
+
 type Props = {
   startDate: Date;
   businessDaysOnly: boolean;
@@ -19,7 +21,11 @@ type Props = {
 };
 
 export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskClick }: Props) {
-  const { members, tasks, projects } = usePlannerStore();
+  const { members, tasks, projects, addPlacement } = usePlannerStore();
+
+  // Use a ref so mouseenter handlers always see the latest drag state
+  const draggingRef = useRef<DragState | null>(null);
+  const [dragging, setDragging] = useState<DragState | null>(null);
 
   const days = useMemo(() => {
     const result: Date[] = [];
@@ -31,6 +37,28 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
     }
     return result;
   }, [startDate, businessDaysOnly]);
+
+  // Clear drag on mouseup anywhere in the document
+  useEffect(() => {
+    const stop = () => {
+      draggingRef.current = null;
+      setDragging(null);
+    };
+    document.addEventListener("mouseup", stop);
+    return () => document.removeEventListener("mouseup", stop);
+  }, []);
+
+  const startDrag = useCallback((taskId: string, memberId: string, hours: number) => {
+    const state: DragState = { taskId, memberId, hours };
+    draggingRef.current = state;
+    setDragging(state);
+  }, []);
+
+  const handleCellEnter = useCallback((memberId: string, dateStr: string) => {
+    const d = draggingRef.current;
+    if (!d || d.memberId !== memberId) return;
+    addPlacement(d.taskId, { date: dateStr, hours: d.hours });
+  }, [addPlacement]);
 
   const getTasksForCell = (memberId: string, date: Date) =>
     tasks.filter(
@@ -51,7 +79,7 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
     isAfter(date, parseISO(task.deadline));
 
   return (
-    <div className="overflow-x-auto">
+    <div className={cn("overflow-x-auto", dragging && "select-none")}>
       <table className="border-collapse text-xs min-w-max">
         <thead>
           <tr>
@@ -93,16 +121,20 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
                 const usedHours = getHoursForCell(member.id, d);
                 const cellTasks = getTasksForCell(member.id, d);
                 const isOver = usedHours > HOURS_PER_DAY;
+                const isDragTarget = dragging?.memberId === member.id && !weekend;
 
                 return (
                   <td
                     key={dateStr}
                     className={cn(
-                      "border border-gray-200 p-0 align-top h-16 cursor-pointer hover:bg-blue-50 transition-colors relative",
-                      weekend && "bg-gray-50 cursor-default hover:bg-gray-50",
+                      "border border-gray-200 p-0 align-top h-16 transition-colors relative",
+                      !weekend && !dragging && "cursor-pointer hover:bg-blue-50",
+                      !weekend && isDragTarget && "cursor-crosshair hover:bg-indigo-50",
+                      weekend && "bg-gray-50 cursor-default",
                       isOver && "bg-red-50"
                     )}
-                    onClick={() => !weekend && onCellClick(member.id, dateStr)}
+                    onClick={() => !weekend && !dragging && onCellClick(member.id, dateStr)}
+                    onMouseEnter={() => !weekend && handleCellEnter(member.id, dateStr)}
                   >
                     <div className="absolute inset-0 flex flex-col-reverse overflow-hidden">
                       {cellTasks.map((task) => {
@@ -113,19 +145,34 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
                         const heightPct = Math.min((hours / HOURS_PER_DAY) * 100, 100);
                         const project = projects.find((p) => p.id === task.projectId);
                         const overDl = isOverDeadline(task, d);
+                        const isThisDragging = dragging?.taskId === task.id;
                         return (
                           <div
                             key={task.id}
                             className={cn(
-                              "w-full flex items-start px-1 pt-0.5 cursor-pointer hover:brightness-90 active:brightness-75 overflow-hidden flex-shrink-0",
+                              "w-full flex items-start px-1 pt-0.5 overflow-hidden flex-shrink-0",
+                              !dragging && "cursor-pointer hover:brightness-90 active:brightness-75",
+                              isThisDragging && "cursor-crosshair brightness-110 ring-2 ring-white ring-inset",
                               overDl && "outline outline-1 outline-red-500 outline-offset-[-1px]"
                             )}
                             style={{
                               backgroundColor: project?.color ?? "#6366f1",
                               height: `${heightPct}%`,
                             }}
-                            title={`${task.title} (${hours}h) — クリックして配置を管理`}
-                            onClick={(e) => { e.stopPropagation(); onTaskClick(task.id); }}
+                            title={
+                              dragging
+                                ? `ドラッグして延伸中: ${task.title}`
+                                : `${task.title} (${hours}h) — ドラッグ: 延伸 / クリック: 配置管理`
+                            }
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              startDrag(task.id, member.id, hours);
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!dragging) onTaskClick(task.id);
+                            }}
                           >
                             <span className="text-[10px] text-white leading-4 truncate">
                               {task.title} {hours}h
