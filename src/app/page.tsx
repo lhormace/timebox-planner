@@ -6,6 +6,7 @@ import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
 import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
 import { MemberDialog } from "@/components/member/MemberDialog";
+import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,9 @@ export default function Home() {
   const [selectedMemberId, setSelectedMemberId] = useState<string | undefined>();
   const [selectedDate, setSelectedDate] = useState<string | undefined>();
   const [placementTaskId, setPlacementTaskId] = useState<string | undefined>();
+  const [editingTaskId, setEditingTaskId] = useState<string | undefined>();
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
 
   const { tasks, projects, members } = usePlannerStore();
@@ -51,6 +54,9 @@ export default function Home() {
           <span className="text-sm text-gray-500">
             配置済 <strong>{totalPlaced}h</strong> / 総見積 <strong>{totalEstimated}h</strong>
           </span>
+          <Button variant="outline" size="sm" onClick={() => setProjectDialogOpen(true)}>
+            プロジェクト管理
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setMemberDialogOpen(true)}>
             メンバー管理
           </Button>
@@ -124,11 +130,30 @@ export default function Home() {
       {(() => {
         const task = placementTaskId ? tasks.find((t) => t.id === placementTaskId) : undefined;
         return task ? (
-          <TaskPlacementDialog task={task} onClose={() => setPlacementTaskId(undefined)} />
+          <TaskPlacementDialog
+            task={task}
+            onClose={() => setPlacementTaskId(undefined)}
+            onEdit={() => {
+              setEditingTaskId(task.id);
+              setPlacementTaskId(undefined);
+            }}
+          />
+        ) : null;
+      })()}
+
+      {(() => {
+        const task = editingTaskId ? tasks.find((t) => t.id === editingTaskId) : undefined;
+        return task ? (
+          <TaskDialog
+            open
+            task={task}
+            onClose={() => setEditingTaskId(undefined)}
+          />
         ) : null;
       })()}
 
       {memberDialogOpen && <MemberDialog onClose={() => setMemberDialogOpen(false)} />}
+      {projectDialogOpen && <ProjectDialog onClose={() => setProjectDialogOpen(false)} />}
     </div>
   );
 }

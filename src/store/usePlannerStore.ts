@@ -7,8 +7,10 @@ type PlannerStore = {
   projects: Project[];
   tasks: Task[];
   addMember: (member: Member) => void;
+  updateMember: (id: string, patch: Partial<Omit<Member, "id">>) => void;
   removeMember: (id: string) => void;
   addProject: (project: Project) => void;
+  updateProject: (id: string, patch: Partial<Omit<Project, "id">>) => void;
   removeProject: (id: string) => void;
   addTask: (task: Task) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
@@ -31,11 +33,19 @@ export const usePlannerStore = create<PlannerStore>()(
 
       addMember: (member) =>
         set((s) => ({ members: [...s.members, member] })),
+      updateMember: (id, patch) =>
+        set((s) => ({
+          members: s.members.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+        })),
       removeMember: (id) =>
         set((s) => ({ members: s.members.filter((m) => m.id !== id) })),
 
       addProject: (project) =>
         set((s) => ({ projects: [...s.projects, project] })),
+      updateProject: (id, patch) =>
+        set((s) => ({
+          projects: s.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        })),
       removeProject: (id) =>
         set((s) => ({ projects: s.projects.filter((p) => p.id !== id) })),
 

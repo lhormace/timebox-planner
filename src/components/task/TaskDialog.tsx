@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { usePlannerStore } from "@/store/usePlannerStore";
+import { Task } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -23,35 +24,42 @@ import {
 
 type Props = {
   open: boolean;
+  task?: Task;
   defaultMemberId?: string;
   defaultDate?: string;
   onClose: () => void;
 };
 
-export function TaskDialog({ open, defaultMemberId, defaultDate, onClose }: Props) {
-  const { members, projects, addTask } = usePlannerStore();
+export function TaskDialog({ open, task, defaultMemberId, defaultDate, onClose }: Props) {
+  const { members, projects, addTask, updateTask } = usePlannerStore();
+  const isEdit = !!task;
 
-  const [title, setTitle] = useState("");
-  const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
-  const [memberId, setMemberId] = useState(defaultMemberId ?? members[0]?.id ?? "");
-  const [estimatedHours, setEstimatedHours] = useState(8);
-  const [deadline, setDeadline] = useState(defaultDate ?? "");
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [projectId, setProjectId] = useState(task?.projectId ?? projects[0]?.id ?? "");
+  const [memberId, setMemberId] = useState(
+    task?.memberId ?? defaultMemberId ?? members[0]?.id ?? ""
+  );
+  const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
+  const [deadline, setDeadline] = useState(task?.deadline ?? defaultDate ?? "");
   const [placementHours, setPlacementHours] = useState(8);
 
   const handleSubmit = () => {
     if (!title || !memberId || !projectId || !deadline) return;
-    addTask({
-      id: uuidv4(),
-      title,
-      projectId,
-      memberId,
-      estimatedHours,
-      deadline,
-      placements: defaultDate
-        ? [{ date: defaultDate, hours: Math.min(placementHours, 8) }]
-        : [],
-    });
-    setTitle("");
+    if (isEdit && task) {
+      updateTask(task.id, { title, projectId, memberId, estimatedHours, deadline });
+    } else {
+      addTask({
+        id: uuidv4(),
+        title,
+        projectId,
+        memberId,
+        estimatedHours,
+        deadline,
+        placements: defaultDate
+          ? [{ date: defaultDate, hours: Math.min(placementHours, 8) }]
+          : [],
+      });
+    }
     onClose();
   };
 
@@ -59,7 +67,7 @@ export function TaskDialog({ open, defaultMemberId, defaultDate, onClose }: Prop
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>タスクを追加</DialogTitle>
+          <DialogTitle>{isEdit ? "タスクを編集" : "タスクを追加"}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-1.5">
@@ -118,7 +126,7 @@ export function TaskDialog({ open, defaultMemberId, defaultDate, onClose }: Prop
               />
             </div>
           </div>
-          {defaultDate && (
+          {!isEdit && defaultDate && (
             <div className="grid gap-1.5">
               <Label>{defaultDate} の配置時間 (最大8h)</Label>
               <Input
@@ -133,7 +141,9 @@ export function TaskDialog({ open, defaultMemberId, defaultDate, onClose }: Prop
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>キャンセル</Button>
-          <Button onClick={handleSubmit} disabled={!title || !deadline}>追加</Button>
+          <Button onClick={handleSubmit} disabled={!title || !deadline}>
+            {isEdit ? "保存" : "追加"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

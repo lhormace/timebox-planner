@@ -19,9 +19,10 @@ import { Badge } from "@/components/ui/badge";
 type Props = {
   task: Task;
   onClose: () => void;
+  onEdit: () => void;
 };
 
-export function TaskPlacementDialog({ task, onClose }: Props) {
+export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
   const { projects, members, addPlacement, removePlacement, removeTask } = usePlannerStore();
 
   const [newDate, setNewDate] = useState("");
@@ -129,7 +130,10 @@ export function TaskPlacementDialog({ task, onClose }: Props) {
           >
             タスクを削除
           </Button>
-          <Button size="sm" onClick={onClose}>閉じる</Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onEdit}>編集</Button>
+            <Button size="sm" onClick={onClose}>閉じる</Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

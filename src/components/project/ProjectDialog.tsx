@@ -14,15 +14,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const PRESET_COLORS = [
-  "#6366f1", "#f59e0b", "#10b981", "#ef4444",
+  "#10b981", "#6366f1", "#f59e0b", "#ef4444",
   "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6",
   "#f97316", "#84cc16",
 ];
 
 type Props = { onClose: () => void };
 
-export function MemberDialog({ onClose }: Props) {
-  const { members, addMember, updateMember, removeMember } = usePlannerStore();
+export function ProjectDialog({ onClose }: Props) {
+  const { projects, addProject, updateProject, removeProject } = usePlannerStore();
   const [name, setName] = useState("");
   const [color, setColor] = useState(PRESET_COLORS[0]);
   const [editingId, setEditingId] = useState<string | undefined>();
@@ -31,9 +31,9 @@ export function MemberDialog({ onClose }: Props) {
 
   const handleAdd = () => {
     if (!name.trim()) return;
-    addMember({ id: uuidv4(), name: name.trim(), color });
+    addProject({ id: uuidv4(), name: name.trim(), color });
     setName("");
-    setColor(PRESET_COLORS[members.length % PRESET_COLORS.length]);
+    setColor(PRESET_COLORS[projects.length % PRESET_COLORS.length]);
   };
 
   const startEdit = (id: string, currentName: string, currentColor: string) => {
@@ -44,7 +44,7 @@ export function MemberDialog({ onClose }: Props) {
 
   const saveEdit = () => {
     if (!editingId || !editName.trim()) return;
-    updateMember(editingId, { name: editName.trim(), color: editColor });
+    updateProject(editingId, { name: editName.trim(), color: editColor });
     setEditingId(undefined);
   };
 
@@ -52,17 +52,17 @@ export function MemberDialog({ onClose }: Props) {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>メンバー管理</DialogTitle>
+          <DialogTitle>プロジェクト管理</DialogTitle>
         </DialogHeader>
 
-        {/* Member list */}
+        {/* Project list */}
         <div className="space-y-1 max-h-64 overflow-y-auto">
-          {members.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-4">メンバーがいません</p>
+          {projects.length === 0 && (
+            <p className="text-xs text-gray-400 text-center py-4">プロジェクトがありません</p>
           )}
-          {members.map((m) =>
-            editingId === m.id ? (
-              <div key={m.id} className="bg-gray-50 rounded px-3 py-2 space-y-2">
+          {projects.map((p) =>
+            editingId === p.id ? (
+              <div key={p.id} className="bg-gray-50 rounded px-3 py-2 space-y-2">
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
@@ -100,21 +100,21 @@ export function MemberDialog({ onClose }: Props) {
                 </div>
               </div>
             ) : (
-              <div key={m.id} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
+              <div key={p.id} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: m.color }} />
-                  <span className="text-sm font-medium text-gray-700">{m.name}</span>
+                  <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
+                  <span className="text-sm font-medium text-gray-700">{p.name}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() => startEdit(m.id, m.name, m.color)}
+                    onClick={() => startEdit(p.id, p.name, p.color)}
                     className="text-gray-400 hover:text-indigo-500 text-xs px-1 transition-colors"
                     title="編集"
                   >
                     ✎
                   </button>
                   <button
-                    onClick={() => removeMember(m.id)}
+                    onClick={() => removeProject(p.id)}
                     className="text-gray-400 hover:text-red-500 text-xs px-1 transition-colors"
                     title="削除"
                   >
@@ -128,14 +128,14 @@ export function MemberDialog({ onClose }: Props) {
 
         {/* Add form */}
         <div className="border-t pt-3 space-y-3">
-          <p className="text-xs font-medium text-gray-500">新しいメンバーを追加</p>
+          <p className="text-xs font-medium text-gray-500">新しいプロジェクトを追加</p>
           <div className="grid gap-1.5">
             <Label className="text-xs">名前</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-              placeholder="例: Charlie"
+              placeholder="例: プロジェクトB"
             />
           </div>
           <div className="grid gap-1.5">
