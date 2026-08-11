@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { addDays, subDays, format, parseISO, startOfToday } from "date-fns";
 import { ja } from "date-fns/locale";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
@@ -87,6 +88,9 @@ export default function Home() {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
             設定
+          </Button>
+          <Button variant="outline" size="sm" render={<Link href="/help" />}>
+            ヘルプ
           </Button>
           <Button size="sm" onClick={() => setDialogOpen(true)}>
             + タスク追加
