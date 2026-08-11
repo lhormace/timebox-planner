@@ -7,6 +7,7 @@ import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { getCompletionDate, getPlacedHours } from "@/lib/planner";
 import { taskBlockStyle } from "@/lib/taskStyle";
+import { getMemberFullName } from "@/lib/member";
 import {
   Dialog,
   DialogContent,
@@ -47,7 +48,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
   const completionDate = getCompletionDate(task);
   const isLate = !!completionDate && isAfter(parseISO(completionDate), parseISO(task.deadline));
 
-  const memberItems = Object.fromEntries(assignedMembers.map((m) => [m.id, m.name]));
+  const memberItems = Object.fromEntries(assignedMembers.map((m) => [m.id, getMemberFullName(m)]));
 
   const handleAdd = () => {
     if (!newMemberId || !newDate || newHours <= 0) return;
@@ -81,7 +82,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
           ) : (
             assignedMembers.map((m) => (
               <Badge key={m.id} className="text-[10px] text-white" style={{ backgroundColor: m.color }}>
-                {m.name}
+                {getMemberFullName(m)}
               </Badge>
             ))
           )}
@@ -116,7 +117,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
                     className="w-2 h-2 rounded-full flex-shrink-0"
                     style={{ backgroundColor: placementMember?.color }}
                   />
-                  {placementMember?.name ?? "不明"} ・{" "}
+                  {placementMember ? getMemberFullName(placementMember) : "不明"} ・{" "}
                   {format(parseISO(p.date), "M月d日(E)", { locale: ja })}
                 </span>
                 <div className="flex items-center gap-2">
@@ -154,7 +155,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     {assignedMembers.map((m) => (
-                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      <SelectItem key={m.id} value={m.id}>{getMemberFullName(m)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

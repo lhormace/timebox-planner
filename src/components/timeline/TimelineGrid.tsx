@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { taskBlockStyle } from "@/lib/taskStyle";
 import { businessDayTarget, FIT_TO_SCREEN_DAY_CAP } from "@/lib/viewRange";
 import { isNonWorkingDay, getDayColor } from "@/lib/calendar";
+import { getMemberFullName } from "@/lib/member";
 
 const HOURS_PER_DAY = 8;
 
@@ -159,7 +160,7 @@ export function TimelineGrid({
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: member.color }}
                   />
-                  <span className="font-medium text-gray-700 truncate">{member.name}</span>
+                  <span className="font-medium text-gray-700 truncate">{getMemberFullName(member)}</span>
                 </div>
               </td>
               {days.map((d) => {

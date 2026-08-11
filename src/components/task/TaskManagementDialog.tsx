@@ -4,6 +4,7 @@ import { format, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { getCompletionDate, isAtRisk } from "@/lib/planner";
+import { getMemberFullName } from "@/lib/member";
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,7 @@ export function TaskManagementDialog({ onClose, onEditTask }: Props) {
                           className="text-[10px] text-white"
                           style={{ backgroundColor: m.color }}
                         >
-                          {m.name}
+                          {getMemberFullName(m)}
                         </Badge>
                       ))
                     )}

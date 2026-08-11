@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { cn } from "@/lib/utils";
+import { getMemberFullName } from "@/lib/member";
 import {
   Dialog,
   DialogContent,
@@ -153,7 +154,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: selected ? "white" : m.color }}
                       />
-                      {m.name}
+                      {getMemberFullName(m)}
                     </button>
                   );
                 })}

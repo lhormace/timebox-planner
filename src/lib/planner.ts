@@ -34,3 +34,21 @@ export function getMemberFinishDate(tasks: Task[], memberId: string): string | u
   if (dates.length === 0) return undefined;
   return dates.reduce((latest, d) => (d > latest ? d : latest), dates[0]);
 }
+
+export type TaskStatus = "not_started" | "in_progress" | "on_track" | "overdue";
+
+export const TASK_STATUS_LABEL: Record<TaskStatus, string> = {
+  not_started: "未着手",
+  in_progress: "配置中",
+  on_track: "予定通り",
+  overdue: "遅延",
+};
+
+export function getTaskStatus(task: Task): TaskStatus {
+  const placed = getPlacedHours(task);
+  if (placed === 0) return "not_started";
+  const completion = getCompletionDate(task);
+  const overdue = !!completion && isAfter(parseISO(completion), parseISO(task.deadline));
+  if (overdue) return "overdue";
+  return placed < task.estimatedHours ? "in_progress" : "on_track";
+}

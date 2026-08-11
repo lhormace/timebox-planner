@@ -28,8 +28,8 @@ type PlannerStore = {
 
 const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings"> = {
   members: [
-    { id: "m1", name: "Alice", color: "#6366f1" },
-    { id: "m2", name: "Bob", color: "#f59e0b" },
+    { id: "m1", lastName: "山田", firstName: "太郎", company: "", department: "", color: "#6366f1" },
+    { id: "m2", lastName: "佐藤", firstName: "花子", company: "", department: "", color: "#f59e0b" },
   ],
   projects: [
     { id: "p1", name: "プロジェクトA", color: "#10b981" },

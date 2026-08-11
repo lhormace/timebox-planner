@@ -5,6 +5,7 @@ import { format, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { getPlacedHours } from "@/lib/planner";
+import { getMemberFullName } from "@/lib/member";
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,7 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>
-            {member?.name} — {format(parseISO(date), "M月d日(E)", { locale: ja })} に配置
+            {member ? getMemberFullName(member) : ""} — {format(parseISO(date), "M月d日(E)", { locale: ja })} に配置
           </DialogTitle>
         </DialogHeader>
 

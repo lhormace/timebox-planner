@@ -1,6 +1,9 @@
 export type Member = {
   id: string;
-  name: string;
+  lastName: string;
+  firstName: string;
+  company?: string;
+  department?: string;
   color: string;
 };
 

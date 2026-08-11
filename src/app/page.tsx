@@ -19,6 +19,7 @@ import { getCompletionDate, getMemberFinishDate, isAtRisk } from "@/lib/planner"
 import { APP_VERSION, COMMIT_DATE } from "@/lib/buildInfo";
 import { VIEW_RANGES, ViewRangeKey } from "@/lib/viewRange";
 import { cn } from "@/lib/utils";
+import { getMemberFullName } from "@/lib/member";
 import {
   Select,
   SelectContent,
@@ -176,7 +177,7 @@ export default function Home() {
           return (
             <div key={m.id} className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: m.color }} />
-              <span className="text-xs text-gray-600">{m.name}</span>
+              <span className="text-xs text-gray-600">{getMemberFullName(m)}</span>
               <span className="text-[10px] text-gray-400">
                 {finishDate
                   ? `〜${format(parseISO(finishDate), "M/d(E)", { locale: ja })}`
@@ -198,7 +199,7 @@ export default function Home() {
             {atRiskTasks.map((t) => {
               const memberNames = members
                 .filter((m) => t.memberIds?.includes(m.id))
-                .map((m) => m.name)
+                .map((m) => getMemberFullName(m))
                 .join("・");
               const completion = getCompletionDate(t);
               return (
