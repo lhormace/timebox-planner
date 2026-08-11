@@ -168,7 +168,10 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap gap-1.5">
             {atRiskTasks.map((t) => {
-              const member = members.find((m) => m.id === t.memberId);
+              const memberNames = members
+                .filter((m) => t.memberIds?.includes(m.id))
+                .map((m) => m.name)
+                .join("・");
               const completion = getCompletionDate(t);
               return (
                 <button
@@ -176,7 +179,7 @@ export default function Home() {
                   onClick={() => setPlacementTaskId(t.id)}
                   className="text-[11px] bg-white border border-red-200 rounded px-2 py-0.5 text-red-700 hover:bg-red-100 transition-colors"
                 >
-                  {t.title}（{member?.name ?? "未定"}）— 期限{" "}
+                  {t.title}（{memberNames || "未定"}）— 期限{" "}
                   {format(parseISO(t.deadline), "M/d", { locale: ja })} /{" "}
                   {completion
                     ? `完了予定 ${format(parseISO(completion), "M/d", { locale: ja })}`

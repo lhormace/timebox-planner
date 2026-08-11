@@ -16,9 +16,10 @@ export type Task = {
   id: string;
   title: string;
   projectId: string;
-  // Unset when the task is created — a member is assigned later, once
-  // ownership is decided.
-  memberId?: string;
+  // Empty/unset when the task is created — members are assigned later, once
+  // ownership is decided. A task can have more than one assignee, each
+  // working their own hours against the shared estimatedHours total.
+  memberIds?: string[];
   estimatedHours: number;
   deadline: string; // ISO date string YYYY-MM-DD
   placements: Placement[];
@@ -30,6 +31,7 @@ export type Task = {
 
 // A placement is one "block" on the grid: member × day × hours
 export type Placement = {
+  memberId: string;
   date: string;   // YYYY-MM-DD
   hours: number;  // 0 < hours <= 8
 };

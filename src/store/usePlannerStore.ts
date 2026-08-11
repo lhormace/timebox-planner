@@ -16,7 +16,7 @@ type PlannerStore = {
   updateTask: (id: string, patch: Partial<Task>) => void;
   removeTask: (id: string) => void;
   addPlacement: (taskId: string, placement: Placement) => void;
-  removePlacement: (taskId: string, date: string) => void;
+  removePlacement: (taskId: string, memberId: string, date: string) => void;
   resetAll: () => void;
 };
 
@@ -70,18 +70,25 @@ export const usePlannerStore = create<PlannerStore>()(
               ? {
                   ...t,
                   placements: [
-                    ...t.placements.filter((p) => p.date !== placement.date),
+                    ...t.placements.filter(
+                      (p) => !(p.memberId === placement.memberId && p.date === placement.date)
+                    ),
                     placement,
                   ],
                 }
               : t
           ),
         })),
-      removePlacement: (taskId, date) =>
+      removePlacement: (taskId, memberId, date) =>
         set((s) => ({
           tasks: s.tasks.map((t) =>
             t.id === taskId
-              ? { ...t, placements: t.placements.filter((p) => p.date !== date) }
+              ? {
+                  ...t,
+                  placements: t.placements.filter(
+                    (p) => !(p.memberId === memberId && p.date === date)
+                  ),
+                }
               : t
           ),
         })),

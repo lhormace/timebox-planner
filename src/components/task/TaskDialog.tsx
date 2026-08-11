@@ -4,6 +4,7 @@ import { useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -41,7 +42,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [projectId, setProjectId] = useState(task?.projectId ?? projects[0]?.id ?? "");
-  const [memberId, setMemberId] = useState(task?.memberId ?? "");
+  const [memberIds, setMemberIds] = useState<string[]>(task?.memberIds ?? []);
   const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
   const [color, setColor] = useState(task?.color ?? randomTaskColor());
@@ -49,8 +50,11 @@ export function TaskDialog({ open, task, onClose }: Props) {
   const [error, setError] = useState("");
 
   const projectItems = Object.fromEntries(projects.map((p) => [p.id, p.name]));
-  const memberItems = Object.fromEntries(members.map((m) => [m.id, m.name]));
   const textureItems = Object.fromEntries(TASK_TEXTURES.map((t) => [t.value, t.label]));
+
+  const toggleMember = (id: string) => {
+    setMemberIds((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
+  };
 
   const isDuplicateTitle = (candidate: string) =>
     tasks.some(
@@ -67,7 +71,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
       updateTask(task.id, {
         title,
         projectId,
-        memberId: memberId || undefined,
+        memberIds: memberIds.length > 0 ? memberIds : undefined,
         estimatedHours,
         deadline,
         color,
@@ -122,21 +126,38 @@ export function TaskDialog({ open, task, onClose }: Props) {
           </div>
           {isEdit && (
             <div className="grid gap-1.5">
-              <Label>担当者</Label>
-              <Select
-                items={memberItems}
-                value={memberId}
-                onValueChange={(v) => setMemberId(v ?? "")}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="未定" />
-                </SelectTrigger>
-                <SelectContent>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>担当者（複数選択可）</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {members.length === 0 && (
+                  <p className="text-xs text-gray-400">メンバーがいません</p>
+                )}
+                {members.map((m) => {
+                  const selected = memberIds.includes(m.id);
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => toggleMember(m.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                        selected
+                          ? "border-transparent text-white"
+                          : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                      )}
+                      style={selected ? { backgroundColor: m.color } : undefined}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: selected ? "white" : m.color }}
+                      />
+                      {m.name}
+                    </button>
+                  );
+                })}
+              </div>
+              {memberIds.length === 0 && (
+                <p className="text-xs text-gray-400">未選択のまま保存すると担当未定になります</p>
+              )}
             </div>
           )}
           <div className="grid gap-1.5">

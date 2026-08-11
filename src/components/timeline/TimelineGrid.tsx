@@ -60,21 +60,23 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
   const handleCellEnter = useCallback((memberId: string, dateStr: string) => {
     const d = draggingRef.current;
     if (!d || d.memberId !== memberId) return;
-    addPlacement(d.taskId, { date: dateStr, hours: d.hours });
+    addPlacement(d.taskId, { memberId, date: dateStr, hours: d.hours });
   }, [addPlacement]);
 
   const getTasksForCell = (memberId: string, date: Date) =>
     tasks.filter(
       (t) =>
-        t.memberId === memberId &&
-        t.placements.some((p) => isSameDay(parseISO(p.date), date))
+        t.memberIds?.includes(memberId) &&
+        t.placements.some((p) => p.memberId === memberId && isSameDay(parseISO(p.date), date))
     );
 
   const getHoursForCell = (memberId: string, date: Date): number =>
     tasks
-      .filter((t) => t.memberId === memberId)
+      .filter((t) => t.memberIds?.includes(memberId))
       .reduce((sum, t) => {
-        const p = t.placements.find((p) => isSameDay(parseISO(p.date), date));
+        const p = t.placements.find(
+          (p) => p.memberId === memberId && isSameDay(parseISO(p.date), date)
+        );
         return sum + (p?.hours ?? 0);
       }, 0);
 
@@ -173,7 +175,7 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                     <div className="absolute inset-0 flex flex-col-reverse overflow-hidden">
                       {cellTasks.map((task) => {
                         const placement = task.placements.find(
-                          (p) => isSameDay(parseISO(p.date), d)
+                          (p) => p.memberId === member.id && isSameDay(parseISO(p.date), d)
                         );
                         const hours = placement?.hours ?? 0;
                         const heightPct = Math.min((hours / HOURS_PER_DAY) * 100, 100);

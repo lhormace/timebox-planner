@@ -32,16 +32,16 @@ type Props = {
 export function CellAssignDialog({ memberId, date, onClose }: Props) {
   const { tasks, members, addPlacement, updateTask } = usePlannerStore();
   const member = members.find((m) => m.id === memberId);
-  // Tasks already owned by this member, plus not-yet-assigned tasks —
-  // placing one of the latter here assigns it to this member.
-  const assignableTasks = tasks.filter((t) => !t.memberId || t.memberId === memberId);
+  // Any task can be picked here — a task can have multiple assignees, so
+  // selecting one this member isn't already on joins them to it.
+  const assignableTasks = tasks;
 
   const [taskId, setTaskId] = useState(assignableTasks[0]?.id ?? "");
   const [hours, setHours] = useState(8);
 
-  const taskItems = Object.fromEntries(
-    assignableTasks.map((t) => [t.id, t.memberId ? t.title : `${t.title}（未定）`])
-  );
+  const taskLabel = (t: (typeof tasks)[number]) =>
+    t.memberIds?.includes(memberId) ? t.title : `${t.title}（参加）`;
+  const taskItems = Object.fromEntries(assignableTasks.map((t) => [t.id, taskLabel(t)]));
   const selectedTask = assignableTasks.find((t) => t.id === taskId);
   const remaining = selectedTask
     ? selectedTask.estimatedHours - getPlacedHours(selectedTask)
@@ -49,10 +49,10 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
 
   const handleSubmit = () => {
     if (!taskId || hours <= 0) return;
-    if (selectedTask && !selectedTask.memberId) {
-      updateTask(taskId, { memberId });
+    if (selectedTask && !selectedTask.memberIds?.includes(memberId)) {
+      updateTask(taskId, { memberIds: [...(selectedTask.memberIds ?? []), memberId] });
     }
-    addPlacement(taskId, { date, hours: Math.min(hours, 8) });
+    addPlacement(taskId, { memberId, date, hours: Math.min(hours, 8) });
     onClose();
   };
 
@@ -80,7 +80,7 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
                 <SelectContent>
                   {assignableTasks.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.memberId ? t.title : `${t.title}（未定）`}
+                      {taskLabel(t)}
                     </SelectItem>
                   ))}
                 </SelectContent>

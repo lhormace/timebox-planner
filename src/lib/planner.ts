@@ -29,8 +29,8 @@ export function isAtRisk(task: Task): boolean {
 // which that member's current workload is actually done.
 export function getMemberFinishDate(tasks: Task[], memberId: string): string | undefined {
   const dates = tasks
-    .filter((t) => t.memberId === memberId)
-    .flatMap((t) => t.placements.map((p) => p.date));
+    .filter((t) => t.memberIds?.includes(memberId))
+    .flatMap((t) => t.placements.filter((p) => p.memberId === memberId).map((p) => p.date));
   if (dates.length === 0) return undefined;
   return dates.reduce((latest, d) => (d > latest ? d : latest), dates[0]);
 }

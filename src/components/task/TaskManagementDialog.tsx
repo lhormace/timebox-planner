@@ -35,7 +35,7 @@ export function TaskManagementDialog({ onClose, onEditTask }: Props) {
           )}
           {sortedTasks.map((t) => {
             const project = projects.find((p) => p.id === t.projectId);
-            const member = members.find((m) => m.id === t.memberId);
+            const assignedMembers = members.filter((m) => t.memberIds?.includes(m.id));
             const completion = getCompletionDate(t);
             const atRisk = isAtRisk(t);
             return (
@@ -50,17 +50,20 @@ export function TaskManagementDialog({ onClose, onEditTask }: Props) {
                       style={{ backgroundColor: project?.color }}
                     />
                     <span className="text-sm font-medium text-gray-800 truncate">{t.title}</span>
-                    {member ? (
-                      <Badge
-                        className="text-[10px] text-white"
-                        style={{ backgroundColor: member.color }}
-                      >
-                        {member.name}
-                      </Badge>
-                    ) : (
+                    {assignedMembers.length === 0 ? (
                       <Badge variant="outline" className="text-[10px] text-gray-500">
                         担当未定
                       </Badge>
+                    ) : (
+                      assignedMembers.map((m) => (
+                        <Badge
+                          key={m.id}
+                          className="text-[10px] text-white"
+                          style={{ backgroundColor: m.color }}
+                        >
+                          {m.name}
+                        </Badge>
+                      ))
                     )}
                     {atRisk && (
                       <Badge variant="destructive" className="text-[10px]">要注意</Badge>
