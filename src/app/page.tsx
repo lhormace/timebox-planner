@@ -150,7 +150,7 @@ export default function Home() {
                   onClick={() => setPlacementTaskId(t.id)}
                   className="text-[11px] bg-white border border-red-200 rounded px-2 py-0.5 text-red-700 hover:bg-red-100 transition-colors"
                 >
-                  {t.title}（{member?.name}）— 期限{" "}
+                  {t.title}（{member?.name ?? "未定"}）— 期限{" "}
                   {format(parseISO(t.deadline), "M/d", { locale: ja })} /{" "}
                   {completion
                     ? `完了予定 ${format(parseISO(completion), "M/d", { locale: ja })}`

@@ -34,7 +34,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [projectId, setProjectId] = useState(task?.projectId ?? projects[0]?.id ?? "");
-  const [memberId, setMemberId] = useState(task?.memberId ?? members[0]?.id ?? "");
+  const [memberId, setMemberId] = useState(task?.memberId ?? "");
   const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
   const [error, setError] = useState("");
@@ -48,19 +48,24 @@ export function TaskDialog({ open, task, onClose }: Props) {
     );
 
   const handleSubmit = () => {
-    if (!title || !memberId || !projectId || !deadline) return;
+    if (!title || !projectId || !deadline) return;
     if (isDuplicateTitle(title)) {
       setError("同じ名前のタスクが既に存在します");
       return;
     }
     if (isEdit && task) {
-      updateTask(task.id, { title, projectId, memberId, estimatedHours, deadline });
+      updateTask(task.id, {
+        title,
+        projectId,
+        memberId: memberId || undefined,
+        estimatedHours,
+        deadline,
+      });
     } else {
       addTask({
         id: uuidv4(),
         title,
         projectId,
-        memberId,
         estimatedHours,
         deadline,
         placements: [],
@@ -77,6 +82,19 @@ export function TaskDialog({ open, task, onClose }: Props) {
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-1.5">
+            <Label>プロジェクト</Label>
+            <Select items={projectItems} value={projectId} onValueChange={(v) => v && setProjectId(v)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
             <Label>タスク名</Label>
             <Input
               value={title}
@@ -88,25 +106,16 @@ export function TaskDialog({ open, task, onClose }: Props) {
             />
             {error && <p className="text-xs text-red-500">{error}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="grid gap-1.5">
-              <Label>プロジェクト</Label>
-              <Select items={projectItems} value={projectId} onValueChange={(v) => v && setProjectId(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {isEdit && (
             <div className="grid gap-1.5">
               <Label>担当者</Label>
-              <Select items={memberItems} value={memberId} onValueChange={(v) => v && setMemberId(v)}>
-                <SelectTrigger>
-                  <SelectValue />
+              <Select
+                items={memberItems}
+                value={memberId}
+                onValueChange={(v) => setMemberId(v ?? "")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="未定" />
                 </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
@@ -115,7 +124,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>総工数 (時間)</Label>

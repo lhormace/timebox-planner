@@ -63,7 +63,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
 
         {/* Task meta */}
         <div className="flex flex-wrap gap-2 text-xs text-gray-600">
-          <span>担当: <strong>{member?.name}</strong></span>
+          <span>担当: <strong>{member?.name ?? "未定"}</strong></span>
           <span>期限: <strong>{format(parseISO(task.deadline), "M月d日(E)", { locale: ja })}</strong></span>
           <span>総工数: <strong>{task.estimatedHours}h</strong></span>
           <Badge variant={remaining <= 0 ? "default" : "outline"} className="text-[10px]">

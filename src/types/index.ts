@@ -14,7 +14,9 @@ export type Task = {
   id: string;
   title: string;
   projectId: string;
-  memberId: string;
+  // Unset when the task is created — a member is assigned later, once
+  // ownership is decided.
+  memberId?: string;
   estimatedHours: number;
   deadline: string; // ISO date string YYYY-MM-DD
   placements: Placement[];

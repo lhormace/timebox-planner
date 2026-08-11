@@ -55,7 +55,7 @@ export function TaskManagementDialog({ onClose, onEditTask }: Props) {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-1 mt-1 text-xs text-gray-500">
-                    <span>担当: {member?.name}</span>
+                    <span>担当: {member?.name ?? "未定"}</span>
                     <span>工数: {t.estimatedHours}h</span>
                     <span>期限: {format(parseISO(t.deadline), "M/d(E)", { locale: ja })}</span>
                     <span>
