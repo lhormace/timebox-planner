@@ -81,12 +81,28 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
   const isOverDeadline = (task: Task, date: Date) =>
     isAfter(date, parseISO(task.deadline));
 
+  // Column widths are expressed as fractions of a shared unit count so they
+  // always sum to 100% — the grid fits the viewport at any range instead of
+  // scrolling horizontally. The member column is worth a few day-columns.
+  const MEMBER_COL_UNITS = 3;
+  const totalUnits = days.length + MEMBER_COL_UNITS;
+  const memberColPercent = (MEMBER_COL_UNITS / totalUnits) * 100;
+  const dayColPercent = (1 / totalUnits) * 100;
+  const showWeekdayLabel = days.length <= 14;
+  const denseHeader = days.length > 31;
+
   return (
-    <div className={cn("overflow-x-auto", dragging && "select-none")}>
-      <table className="border-collapse text-xs min-w-max">
+    <div className={cn(dragging && "select-none")}>
+      <table className="border-collapse text-xs table-fixed w-full">
+        <colgroup>
+          <col style={{ width: `${memberColPercent}%` }} />
+          {days.map((d) => (
+            <col key={d.toISOString()} style={{ width: `${dayColPercent}%` }} />
+          ))}
+        </colgroup>
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 bg-white border border-gray-200 px-3 py-2 w-28 text-left font-semibold text-gray-600">
+            <th className="sticky left-0 z-10 bg-white border border-gray-200 px-3 py-2 text-left font-semibold text-gray-600">
               メンバー
             </th>
             {days.map((d) => {
@@ -95,12 +111,17 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                 <th
                   key={d.toISOString()}
                   className={cn(
-                    "border border-gray-200 px-1 py-2 w-16 text-center font-normal",
+                    "border border-gray-200 px-0.5 py-2 text-center font-normal overflow-hidden",
+                    denseHeader && "px-0",
                     weekend ? "bg-gray-50 text-gray-400" : "bg-white text-gray-600"
                   )}
                 >
-                  <div className="font-semibold">{format(d, "M/d")}</div>
-                  <div className="text-[10px]">{format(d, "E", { locale: ja })}</div>
+                  <div className={cn("font-semibold truncate", denseHeader && "text-[9px]")}>
+                    {format(d, denseHeader ? "d" : "M/d")}
+                  </div>
+                  {showWeekdayLabel && (
+                    <div className="text-[10px]">{format(d, "E", { locale: ja })}</div>
+                  )}
                 </th>
               );
             })}
