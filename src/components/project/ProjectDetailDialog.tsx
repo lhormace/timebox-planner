@@ -10,8 +10,11 @@ import {
   isTaskWithinProjectWindow,
   getProjectFinance,
   getProjectProgress,
+  getProjectMemberBreakdown,
   hasUnratedAssignee,
 } from "@/lib/projectFinance";
+import { getMemberFullName } from "@/lib/member";
+import { exportProjectReport } from "@/lib/excelExport";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +22,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const yen = (n: number) => `¥${Math.round(n).toLocaleString("ja-JP")}`;
 
@@ -34,15 +39,29 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
   const finance = getProjectFinance(tasks, members, project);
   const progress = getProjectProgress(tasks, project.id);
   const unrated = hasUnratedAssignee(tasks, members, project.id);
+  const memberBreakdown = getProjectMemberBreakdown(tasks, members, project.id);
   const sortedTasks = [...projectTasks].sort((a, b) => a.deadline.localeCompare(b.deadline));
+
+  const budgetUsedPct =
+    finance.budget !== undefined && finance.budget > 0
+      ? Math.min(100, (finance.cost / finance.budget) * 100)
+      : undefined;
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
             {project.name}
+            <Button
+              variant="outline"
+              size="xs"
+              className="ml-auto mr-6"
+              onClick={() => exportProjectReport(project, tasks, members)}
+            >
+              Excel出力
+            </Button>
           </DialogTitle>
         </DialogHeader>
 
@@ -67,6 +86,12 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
             <p className={"text-lg font-bold " + (progress > 100 ? "text-amber-600" : "text-gray-800")}>
               {progress.toFixed(0)}%
             </p>
+            <div className="mt-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+              <div
+                className={cn("h-full rounded-full", progress > 100 ? "bg-amber-500" : "bg-indigo-500")}
+                style={{ width: `${Math.min(100, progress)}%` }}
+              />
+            </div>
           </div>
           <div className="bg-gray-50 rounded px-3 py-2">
             <p className="text-[11px] text-gray-500">積算費用（配置時間 × 人日単価）</p>
@@ -80,6 +105,14 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
             <p className="text-lg font-bold text-gray-800">
               {finance.budget !== undefined ? yen(finance.budget) : "未設定"}
             </p>
+            {budgetUsedPct !== undefined && (
+              <div className="mt-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full", finance.breakEven ? "bg-emerald-500" : "bg-red-500")}
+                  style={{ width: `${budgetUsedPct}%` }}
+                />
+              </div>
+            )}
           </div>
           <div className="bg-gray-50 rounded px-3 py-2">
             <p className="text-[11px] text-gray-500">利益率</p>
@@ -94,6 +127,43 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
             ) : (
               <p className="text-lg font-bold text-gray-400">予算未設定</p>
             )}
+          </div>
+        </div>
+
+        {/* Member workload breakdown */}
+        <div className="grid gap-1.5">
+          <p className="text-xs font-medium text-gray-500">メンバー別工数・コスト</p>
+          <div className="space-y-1 max-h-40 overflow-y-auto">
+            {memberBreakdown.length === 0 && (
+              <p className="text-xs text-gray-400">配置がありません</p>
+            )}
+            {memberBreakdown.map(({ member, plannedHours, actualHours, cost }) => {
+              const variancePct =
+                actualHours !== undefined && plannedHours > 0
+                  ? ((actualHours - plannedHours) / plannedHours) * 100
+                  : undefined;
+              return (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between bg-gray-50 rounded px-3 py-1.5"
+                >
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: member.color }} />
+                    <span className="text-sm text-gray-800 truncate">{getMemberFullName(member)}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[11px] text-gray-500 flex-shrink-0">
+                    <span>予定 {plannedHours}h{actualHours !== undefined ? ` / 実績 ${actualHours}h` : ""}</span>
+                    {variancePct !== undefined && (
+                      <span className={variancePct <= 0 ? "text-emerald-600" : "text-red-600"}>
+                        {variancePct >= 0 ? "+" : ""}
+                        {variancePct.toFixed(0)}%
+                      </span>
+                    )}
+                    <span>{yen(cost)}</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 

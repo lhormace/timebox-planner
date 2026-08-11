@@ -75,6 +75,43 @@ export function getProjectFinance(tasks: Task[], members: Member[], project: Pro
   return { cost, budget, margin, marginRate, breakEven };
 }
 
+export type ProjectMemberBreakdown = {
+  member: Member;
+  plannedHours: number;
+  actualHours: number | undefined; // undefined when nothing recorded yet
+  cost: number; // based on planned hours, same basis as getProjectCost
+};
+
+// Per-member workload within a single project — who's doing how much, and
+// at what cost, ranked by planned hours.
+export function getProjectMemberBreakdown(
+  tasks: Task[],
+  members: Member[],
+  projectId: string
+): ProjectMemberBreakdown[] {
+  const projectTasks = getProjectTasks(tasks, projectId);
+  const placementsByMember = new Map<string, Placement[]>();
+  for (const t of projectTasks) {
+    for (const p of t.placements) {
+      const list = placementsByMember.get(p.memberId) ?? [];
+      list.push(p);
+      placementsByMember.set(p.memberId, list);
+    }
+  }
+  const rows: ProjectMemberBreakdown[] = [];
+  for (const [memberId, placements] of placementsByMember) {
+    const member = members.find((m) => m.id === memberId);
+    if (!member) continue;
+    const plannedHours = placements.reduce((s, p) => s + p.hours, 0);
+    const recorded = placements.filter((p) => p.actualHours !== undefined);
+    const actualHours =
+      recorded.length > 0 ? recorded.reduce((s, p) => s + (p.actualHours ?? 0), 0) : undefined;
+    const cost = member.dailyRateJpy ? (plannedHours / 8) * member.dailyRateJpy : 0;
+    rows.push({ member, plannedHours, actualHours, cost });
+  }
+  return rows.sort((a, b) => b.plannedHours - a.plannedHours);
+}
+
 // Planned-vs-actual variance for a member, using only placements where
 // actualHours has been recorded (unrecorded placements are excluded rather
 // than treated as 0, since "not yet reported" isn't the same as "did none").
