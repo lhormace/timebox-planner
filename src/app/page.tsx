@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { addDays, subDays, format, startOfToday } from "date-fns";
+import { addDays, subDays, format, parseISO, startOfToday } from "date-fns";
+import { ja } from "date-fns/locale";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
 import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
@@ -10,6 +11,7 @@ import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getCompletionDate, getMemberFinishDate, isAtRisk } from "@/lib/planner";
 
 export default function Home() {
   const [startDate, setStartDate] = useState(startOfToday());
@@ -29,6 +31,7 @@ export default function Home() {
     0
   );
   const totalEstimated = tasks.reduce((sum, t) => sum + t.estimatedHours, 0);
+  const atRiskTasks = tasks.filter(isAtRisk);
 
   const handleCellClick = (memberId: string, date: string) => {
     setSelectedMemberId(memberId);
@@ -101,14 +104,50 @@ export default function Home() {
 
       {/* Member legend */}
       <div className="px-6 py-2 flex items-center gap-4">
-        {members.map((m) => (
-          <div key={m.id} className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: m.color }} />
-            <span className="text-xs text-gray-600">{m.name}</span>
-          </div>
-        ))}
+        {members.map((m) => {
+          const finishDate = getMemberFinishDate(tasks, m.id);
+          return (
+            <div key={m.id} className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: m.color }} />
+              <span className="text-xs text-gray-600">{m.name}</span>
+              <span className="text-[10px] text-gray-400">
+                {finishDate
+                  ? `〜${format(parseISO(finishDate), "M/d(E)", { locale: ja })}`
+                  : "未配置"}
+              </span>
+            </div>
+          );
+        })}
         <span className="text-xs text-gray-400 ml-auto">空セル: 新規タスク　タスクブロック: 配置を管理</span>
       </div>
+
+      {/* At-risk tasks banner */}
+      {atRiskTasks.length > 0 && (
+        <div className="mx-6 mb-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2">
+          <p className="text-xs font-semibold text-red-700 mb-1">
+            ⚠ 期限に間に合わない、または未配置のタスク（{atRiskTasks.length}件）
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {atRiskTasks.map((t) => {
+              const member = members.find((m) => m.id === t.memberId);
+              const completion = getCompletionDate(t);
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setPlacementTaskId(t.id)}
+                  className="text-[11px] bg-white border border-red-200 rounded px-2 py-0.5 text-red-700 hover:bg-red-100 transition-colors"
+                >
+                  {t.title}（{member?.name}）— 期限{" "}
+                  {format(parseISO(t.deadline), "M/d", { locale: ja })} /{" "}
+                  {completion
+                    ? `完了予定 ${format(parseISO(completion), "M/d", { locale: ja })}`
+                    : "未配置"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Timeline */}
       <main className="px-6 pb-8">

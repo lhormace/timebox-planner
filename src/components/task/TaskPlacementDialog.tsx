@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { format, parseISO } from "date-fns";
+import { format, isAfter, parseISO } from "date-fns";
 import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
+import { getCompletionDate } from "@/lib/planner";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,8 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
 
   const totalPlaced = task.placements.reduce((s, p) => s + p.hours, 0);
   const remaining = task.estimatedHours - totalPlaced;
+  const completionDate = getCompletionDate(task);
+  const isLate = !!completionDate && isAfter(parseISO(completionDate), parseISO(task.deadline));
 
   const handleAdd = () => {
     if (!newDate || newHours <= 0) return;
@@ -65,6 +68,12 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
           <span>総工数: <strong>{task.estimatedHours}h</strong></span>
           <Badge variant={remaining <= 0 ? "default" : "outline"} className="text-[10px]">
             配置済 {totalPlaced}h / 残 {remaining}h
+          </Badge>
+          <Badge variant={isLate ? "destructive" : "outline"} className="text-[10px]">
+            完了予定:{" "}
+            {completionDate
+              ? format(parseISO(completionDate), "M月d日(E)", { locale: ja })
+              : "未定（未配置）"}
           </Badge>
         </div>
 
