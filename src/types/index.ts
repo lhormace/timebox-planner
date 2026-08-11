@@ -35,3 +35,15 @@ export type Placement = {
   date: string;   // YYYY-MM-DD
   hours: number;  // 0 < hours <= 8
 };
+
+// Company-specific calendar rules — what counts as a non-working day and
+// when the fiscal year begins vary by organization, so both are configurable
+// rather than hardcoded.
+export type PlannerSettings = {
+  // Day-of-week indices (0 = Sunday .. 6 = Saturday) treated as weekend.
+  weekendDays: number[];
+  // Extra non-working dates (ISO YYYY-MM-DD), e.g. public holidays.
+  holidays: string[];
+  // 1-12; the calendar month the fiscal year starts on (e.g. 4 = April).
+  fiscalYearStartMonth: number;
+};

@@ -1,11 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Member, Project, Task, Placement } from "@/types";
+import { Member, Project, Task, Placement, PlannerSettings } from "@/types";
 
 type PlannerStore = {
   members: Member[];
   projects: Project[];
   tasks: Task[];
+  settings: PlannerSettings;
+  updateSettings: (patch: Partial<PlannerSettings>) => void;
+  addHoliday: (date: string) => void;
+  removeHoliday: (date: string) => void;
   addMember: (member: Member) => void;
   updateMember: (id: string, patch: Partial<Omit<Member, "id">>) => void;
   removeMember: (id: string) => void;
@@ -20,7 +24,7 @@ type PlannerStore = {
   resetAll: () => void;
 };
 
-const initialState: Pick<PlannerStore, "members" | "projects" | "tasks"> = {
+const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings"> = {
   members: [
     { id: "m1", name: "Alice", color: "#6366f1" },
     { id: "m2", name: "Bob", color: "#f59e0b" },
@@ -29,12 +33,30 @@ const initialState: Pick<PlannerStore, "members" | "projects" | "tasks"> = {
     { id: "p1", name: "プロジェクトA", color: "#10b981" },
   ],
   tasks: [],
+  settings: {
+    weekendDays: [0, 6],
+    holidays: [],
+    fiscalYearStartMonth: 4,
+  },
 };
 
 export const usePlannerStore = create<PlannerStore>()(
   persist(
     (set) => ({
       ...initialState,
+
+      updateSettings: (patch) =>
+        set((s) => ({ settings: { ...s.settings, ...patch } })),
+      addHoliday: (date) =>
+        set((s) =>
+          s.settings.holidays.includes(date)
+            ? s
+            : { settings: { ...s.settings, holidays: [...s.settings.holidays, date].sort() } }
+        ),
+      removeHoliday: (date) =>
+        set((s) => ({
+          settings: { ...s.settings, holidays: s.settings.holidays.filter((h) => h !== date) },
+        })),
 
       addMember: (member) =>
         set((s) => ({ members: [...s.members, member] })),

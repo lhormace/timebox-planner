@@ -10,6 +10,7 @@ import { TaskManagementDialog } from "@/components/task/TaskManagementDialog";
 import { CellAssignDialog } from "@/components/task/CellAssignDialog";
 import { MemberDialog } from "@/components/member/MemberDialog";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export default function Home() {
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [taskManagementOpen, setTaskManagementOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
   const [viewRangeKey, setViewRangeKey] = useState<ViewRangeKey>("week");
   const rangeDays = VIEW_RANGES.find((r) => r.key === viewRangeKey)?.days ?? 7;
@@ -82,6 +84,9 @@ export default function Home() {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setTaskManagementOpen(true)}>
             タスク管理
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+            設定
           </Button>
           <Button size="sm" onClick={() => setDialogOpen(true)}>
             + タスク追加
@@ -242,6 +247,7 @@ export default function Home() {
 
       {memberDialogOpen && <MemberDialog onClose={() => setMemberDialogOpen(false)} />}
       {projectDialogOpen && <ProjectDialog onClose={() => setProjectDialogOpen(false)} />}
+      {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
       {taskManagementOpen && (
         <TaskManagementDialog
           onClose={() => setTaskManagementOpen(false)}
