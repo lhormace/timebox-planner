@@ -14,6 +14,7 @@ import { usePlannerStore } from "@/store/usePlannerStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCompletionDate, getMemberFinishDate, isAtRisk } from "@/lib/planner";
+import { APP_VERSION, COMMIT_DATE } from "@/lib/buildInfo";
 
 export default function Home() {
   const [startDate, setStartDate] = useState(startOfToday());
@@ -47,6 +48,9 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-lg font-bold text-gray-900">Timebox Planner</h1>
+          <span className="text-[10px] text-gray-400" title="デプロイ元コミットの日時">
+            v{APP_VERSION} · {COMMIT_DATE ? format(parseISO(COMMIT_DATE), "yyyy-MM-dd HH:mm") : "unknown"}
+          </span>
           <div className="flex gap-2">
             {projects.map((p) => (
               <Badge key={p.id} style={{ backgroundColor: p.color }} className="text-white text-[10px]">
