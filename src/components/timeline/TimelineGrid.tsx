@@ -8,7 +8,7 @@ import { Task } from "@/types";
 import { cn } from "@/lib/utils";
 import { taskBlockStyle } from "@/lib/taskStyle";
 import { businessDayTarget, FIT_TO_SCREEN_DAY_CAP } from "@/lib/viewRange";
-import { isNonWorkingDay } from "@/lib/calendar";
+import { isNonWorkingDay, getDayColor } from "@/lib/calendar";
 
 const HOURS_PER_DAY = 8;
 
@@ -118,13 +118,16 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
             </th>
             {days.map((d) => {
               const nonWorking = isNonWorkingDay(d, settings);
+              const dayColor = getDayColor(d, settings);
               return (
                 <th
                   key={d.toISOString()}
                   className={cn(
                     "border border-gray-200 px-0.5 py-2 text-center font-normal overflow-hidden",
                     denseHeader && "px-0",
-                    nonWorking ? "bg-gray-50 text-gray-400" : "bg-white text-gray-600"
+                    dayColor === "saturday" && "bg-blue-50 text-blue-600",
+                    dayColor === "sunday-or-holiday" && "bg-red-50 text-red-600",
+                    dayColor === "normal" && (nonWorking ? "bg-gray-50 text-gray-400" : "bg-white text-gray-600")
                   )}
                 >
                   <div className={cn("font-semibold truncate", denseHeader && "text-[9px]")}>
@@ -153,6 +156,7 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
               {days.map((d) => {
                 const dateStr = format(d, "yyyy-MM-dd");
                 const nonWorking = isNonWorkingDay(d, settings);
+                const dayColor = getDayColor(d, settings);
                 const usedHours = getHoursForCell(member.id, d);
                 const cellTasks = getTasksForCell(member.id, d);
                 const isOver = usedHours > HOURS_PER_DAY;
@@ -165,7 +169,9 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                       "border border-gray-200 p-0 align-top h-16 transition-colors relative",
                       !dragging && "cursor-pointer hover:bg-blue-50",
                       isDragTarget && "cursor-crosshair hover:bg-indigo-50",
-                      nonWorking && "bg-gray-50",
+                      dayColor === "saturday" && "bg-blue-50/40",
+                      dayColor === "sunday-or-holiday" && "bg-red-50/40",
+                      dayColor === "normal" && nonWorking && "bg-gray-50",
                       isOver && "bg-red-50"
                     )}
                     onClick={() => !dragging && onCellClick(member.id, dateStr)}

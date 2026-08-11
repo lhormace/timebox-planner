@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { Member, Project, Task, Placement, PlannerSettings } from "@/types";
+import { getJapanHolidaysForYears } from "@/lib/japanHolidays";
 
 type PlannerStore = {
   members: Member[];
@@ -35,7 +36,13 @@ const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "setti
   tasks: [],
   settings: {
     weekendDays: [0, 6],
-    holidays: [],
+    // Default to Japan's national holidays (computed, not hardcoded) for the
+    // surrounding few years so the calendar is useful out of the box.
+    holidays: getJapanHolidaysForYears([
+      new Date().getFullYear() - 1,
+      new Date().getFullYear(),
+      new Date().getFullYear() + 1,
+    ]),
     fiscalYearStartMonth: 4,
   },
 };
