@@ -7,7 +7,7 @@ import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { cn } from "@/lib/utils";
 import { taskBlockStyle } from "@/lib/taskStyle";
-import { businessDayTarget } from "@/lib/viewRange";
+import { businessDayTarget, FIT_TO_SCREEN_DAY_CAP } from "@/lib/viewRange";
 
 const HOURS_PER_DAY = 8;
 
@@ -82,18 +82,28 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
     isAfter(date, parseISO(task.deadline));
 
   // Column widths are expressed as fractions of a shared unit count so they
-  // always sum to 100% — the grid fits the viewport at any range instead of
-  // scrolling horizontally. The member column is worth a few day-columns.
+  // sum to 100% of the reference span — the grid fits the viewport up to
+  // FIT_TO_SCREEN_DAY_CAP days. Beyond that, column width stays pinned at
+  // the cap's density and the table scrolls horizontally instead of
+  // compressing further. The member column is worth a few day-columns.
   const MEMBER_COL_UNITS = 3;
-  const totalUnits = days.length + MEMBER_COL_UNITS;
-  const memberColPercent = (MEMBER_COL_UNITS / totalUnits) * 100;
-  const dayColPercent = (1 / totalUnits) * 100;
-  const showWeekdayLabel = days.length <= 14;
-  const denseHeader = days.length > 31;
+  const widthReferenceDays = Math.min(days.length, FIT_TO_SCREEN_DAY_CAP);
+  const widthReferenceUnits = widthReferenceDays + MEMBER_COL_UNITS;
+  const memberColPercent = (MEMBER_COL_UNITS / widthReferenceUnits) * 100;
+  const dayColPercent = (1 / widthReferenceUnits) * 100;
+  const needsHorizontalScroll = days.length > FIT_TO_SCREEN_DAY_CAP;
+  const tableWidthPercent = needsHorizontalScroll
+    ? ((days.length + MEMBER_COL_UNITS) / widthReferenceUnits) * 100
+    : 100;
+  const showWeekdayLabel = widthReferenceDays <= 14;
+  const denseHeader = widthReferenceDays > 31;
 
   return (
-    <div className={cn(dragging && "select-none")}>
-      <table className="border-collapse text-xs table-fixed w-full">
+    <div className={cn(needsHorizontalScroll && "overflow-x-auto", dragging && "select-none")}>
+      <table
+        className="border-collapse text-xs table-fixed"
+        style={{ width: `${tableWidthPercent}%` }}
+      >
         <colgroup>
           <col style={{ width: `${memberColPercent}%` }} />
           {days.map((d) => (

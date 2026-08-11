@@ -1,4 +1,4 @@
-export type ViewRangeKey = "day" | "week" | "biweek" | "month" | "quarter" | "halfYear";
+export type ViewRangeKey = "day" | "week" | "biweek" | "month" | "quarter" | "halfYear" | "year";
 
 // Calendar-day span for each view. When "business days only" is on, the grid
 // shows roughly this many days' worth of weekdays instead (see
@@ -10,7 +10,13 @@ export const VIEW_RANGES: { key: ViewRangeKey; label: string; days: number }[] =
   { key: "month", label: "1か月", days: 30 },
   { key: "quarter", label: "3か月", days: 90 },
   { key: "halfYear", label: "半年", days: 182 },
+  { key: "year", label: "1年", days: 365 },
 ];
+
+// Column widths beyond this span stay pinned at the "1か月" density instead
+// of compressing further — ranges wider than this scroll horizontally
+// rather than becoming unreadable.
+export const FIT_TO_SCREEN_DAY_CAP = 30;
 
 export function businessDayTarget(calendarDays: number): number {
   return Math.max(1, Math.round((calendarDays * 5) / 7));
