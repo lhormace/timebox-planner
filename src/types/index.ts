@@ -4,9 +4,18 @@ export type Member = {
   firstName: string;
   company?: string;
   department?: string;
+  // 役職 — job title/position, shown alongside the member's name.
+  title?: string;
+  teamId?: string;
   color: string;
   // Cost basis for project cost roll-ups (人日単価).
   dailyRateJpy?: number;
+};
+
+export type Team = {
+  id: string;
+  name: string;
+  color: string;
 };
 
 export type Project = {

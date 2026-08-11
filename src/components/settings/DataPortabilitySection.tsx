@@ -12,7 +12,7 @@ const JSON_ACCEPT = {
 };
 
 export function DataPortabilitySection() {
-  const { members, projects, tasks, settings, loadData } = usePlannerStore();
+  const { members, projects, teams, tasks, settings, loadData } = usePlannerStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileHandleRef = useRef<FileSystemFileHandle | null>(null);
   const [linkedFileName, setLinkedFileName] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export function DataPortabilitySection() {
   const supportsFileSystemAccess =
     typeof window !== "undefined" && typeof window.showSaveFilePicker === "function";
 
-  const currentData: PlannerData = { members, projects, tasks, settings };
+  const currentData: PlannerData = { members, projects, teams, tasks, settings };
 
   const writeToBlob = () => {
     const blob = new Blob([JSON.stringify(buildExport(currentData), null, 2)], {

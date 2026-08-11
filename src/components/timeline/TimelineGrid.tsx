@@ -155,12 +155,19 @@ export function TimelineGrid({
           {members.map((member) => (
             <tr key={member.id}>
               <td className="sticky left-0 z-10 bg-white border border-gray-200 px-3 py-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <span
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: member.color }}
                   />
-                  <span className="font-medium text-gray-700 truncate">{getMemberFullName(member)}</span>
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-700 truncate leading-tight">
+                      {getMemberFullName(member)}
+                    </p>
+                    {member.title && (
+                      <p className="text-[10px] text-gray-400 truncate leading-tight">{member.title}</p>
+                    )}
+                  </div>
                 </div>
               </td>
               {days.map((d) => {

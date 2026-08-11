@@ -28,7 +28,8 @@ type Props = {
 };
 
 export function MemberDetailDialog({ member, onClose }: Props) {
-  const { tasks, projects } = usePlannerStore();
+  const { tasks, projects, teams } = usePlannerStore();
+  const team = teams.find((t) => t.id === member.teamId);
 
   const memberTasks = tasks.filter((t) => t.memberIds?.includes(member.id));
   const assignedProjects = projects.filter((p) =>
@@ -45,10 +46,17 @@ export function MemberDetailDialog({ member, onClose }: Props) {
           <DialogTitle className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: member.color }} />
             {getMemberFullName(member)}
+            {member.title && <span className="text-sm font-normal text-gray-500">（{member.title}）</span>}
           </DialogTitle>
         </DialogHeader>
 
         <div className="text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
+          {team && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: team.color }} />
+              チーム: {team.name}
+            </span>
+          )}
           <span>会社: {member.company || "未設定"}</span>
           <span>部署: {member.department || "未設定"}</span>
           <span>

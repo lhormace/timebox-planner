@@ -92,7 +92,8 @@ export default function HelpPage() {
         <Section title="管理画面">
           <ul className="list-disc list-inside space-y-1">
             <li><strong>プロジェクト管理</strong> — プロジェクトの追加・編集・削除に加え、プロジェクト憲章・開始日/終了日・予算（任意）を登録できる</li>
-            <li><strong>メンバー管理</strong> — 姓名・会社名・部署名・人日単価（任意）を登録できる</li>
+            <li><strong>メンバー管理</strong> — 姓名・会社名・部署名・役職・所属チーム・人日単価（任意）を登録できる。各メンバーの▲▼ボタンで並び順を変更でき、タイムラインの表示順にも反映される</li>
+            <li><strong>チーム管理</strong>（メンバー管理内の「チーム管理」から） — チームの追加・編集・削除。メンバーの所属チームとして選択できる</li>
             <li><strong>タスク管理</strong> — 全タスクを一覧表示し、配置の有無に関わらず編集・削除できる</li>
           </ul>
         </Section>

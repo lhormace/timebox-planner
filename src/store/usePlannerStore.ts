@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Member, Project, Task, Placement, PlannerSettings } from "@/types";
+import { Member, Project, Task, Placement, PlannerSettings, Team } from "@/types";
 import { getJapanHolidaysForYears } from "@/lib/japanHolidays";
 
 type PlannerStore = {
   members: Member[];
   projects: Project[];
+  teams: Team[];
   tasks: Task[];
   settings: PlannerSettings;
   updateSettings: (patch: Partial<PlannerSettings>) => void;
@@ -14,6 +15,10 @@ type PlannerStore = {
   addMember: (member: Member) => void;
   updateMember: (id: string, patch: Partial<Omit<Member, "id">>) => void;
   removeMember: (id: string) => void;
+  moveMember: (id: string, direction: "up" | "down") => void;
+  addTeam: (team: Team) => void;
+  updateTeam: (id: string, patch: Partial<Omit<Team, "id">>) => void;
+  removeTeam: (id: string) => void;
   addProject: (project: Project) => void;
   updateProject: (id: string, patch: Partial<Omit<Project, "id">>) => void;
   removeProject: (id: string) => void;
@@ -30,10 +35,13 @@ type PlannerStore = {
   ) => void;
   setPlacementHours: (taskId: string, memberId: string, date: string, hours: number) => void;
   resetAll: () => void;
-  loadData: (data: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings">) => void;
+  loadData: (
+    data: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings"> &
+      Partial<Pick<PlannerStore, "teams">>
+  ) => void;
 };
 
-const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings"> = {
+const initialState: Pick<PlannerStore, "members" | "projects" | "teams" | "tasks" | "settings"> = {
   members: [
     { id: "m1", lastName: "山田", firstName: "太郎", company: "", department: "", color: "#6366f1" },
     { id: "m2", lastName: "佐藤", firstName: "花子", company: "", department: "", color: "#f59e0b" },
@@ -41,6 +49,7 @@ const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "setti
   projects: [
     { id: "p1", name: "プロジェクトA", color: "#10b981" },
   ],
+  teams: [],
   tasks: [],
   settings: {
     weekendDays: [0, 6],
@@ -81,6 +90,24 @@ export const usePlannerStore = create<PlannerStore>()(
         })),
       removeMember: (id) =>
         set((s) => ({ members: s.members.filter((m) => m.id !== id) })),
+      moveMember: (id, direction) =>
+        set((s) => {
+          const index = s.members.findIndex((m) => m.id === id);
+          const swapWith = direction === "up" ? index - 1 : index + 1;
+          if (index === -1 || swapWith < 0 || swapWith >= s.members.length) return s;
+          const members = [...s.members];
+          [members[index], members[swapWith]] = [members[swapWith], members[index]];
+          return { members };
+        }),
+
+      addTeam: (team) =>
+        set((s) => ({ teams: [...s.teams, team] })),
+      updateTeam: (id, patch) =>
+        set((s) => ({
+          teams: s.teams.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+        })),
+      removeTeam: (id) =>
+        set((s) => ({ teams: s.teams.filter((t) => t.id !== id) })),
 
       addProject: (project) =>
         set((s) => ({ projects: [...s.projects, project] })),
@@ -159,7 +186,7 @@ export const usePlannerStore = create<PlannerStore>()(
         })),
 
       resetAll: () => set(initialState),
-      loadData: (data) => set(data),
+      loadData: (data) => set({ teams: [], ...data }),
     }),
     { name: "timebox-planner" }
   )

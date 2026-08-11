@@ -1,8 +1,9 @@
-import { Member, Project, Task, PlannerSettings } from "@/types";
+import { Member, Project, Task, PlannerSettings, Team } from "@/types";
 
 export type PlannerData = {
   members: Member[];
   projects: Project[];
+  teams: Team[];
   tasks: Task[];
   settings: PlannerSettings;
 };
@@ -31,9 +32,9 @@ export function parseImport(json: string): PlannerData {
   if (!data || typeof data !== "object") {
     throw new Error("ファイルの形式が不正です");
   }
-  const { members, projects, tasks, settings } = data as Partial<PlannerData>;
+  const { members, projects, teams, tasks, settings } = data as Partial<PlannerData>;
   if (!Array.isArray(members) || !Array.isArray(projects) || !Array.isArray(tasks) || !settings) {
     throw new Error("ファイルの形式が不正です（members/projects/tasks/settingsが必要）");
   }
-  return { members, projects, tasks, settings };
+  return { members, projects, teams: Array.isArray(teams) ? teams : [], tasks, settings };
 }
