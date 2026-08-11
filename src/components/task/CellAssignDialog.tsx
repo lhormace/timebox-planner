@@ -30,21 +30,28 @@ type Props = {
 };
 
 export function CellAssignDialog({ memberId, date, onClose }: Props) {
-  const { tasks, members, addPlacement } = usePlannerStore();
+  const { tasks, members, addPlacement, updateTask } = usePlannerStore();
   const member = members.find((m) => m.id === memberId);
-  const memberTasks = tasks.filter((t) => t.memberId === memberId);
+  // Tasks already owned by this member, plus not-yet-assigned tasks —
+  // placing one of the latter here assigns it to this member.
+  const assignableTasks = tasks.filter((t) => !t.memberId || t.memberId === memberId);
 
-  const [taskId, setTaskId] = useState(memberTasks[0]?.id ?? "");
+  const [taskId, setTaskId] = useState(assignableTasks[0]?.id ?? "");
   const [hours, setHours] = useState(8);
 
-  const taskItems = Object.fromEntries(memberTasks.map((t) => [t.id, t.title]));
-  const selectedTask = memberTasks.find((t) => t.id === taskId);
+  const taskItems = Object.fromEntries(
+    assignableTasks.map((t) => [t.id, t.memberId ? t.title : `${t.title}（未定）`])
+  );
+  const selectedTask = assignableTasks.find((t) => t.id === taskId);
   const remaining = selectedTask
     ? selectedTask.estimatedHours - getPlacedHours(selectedTask)
     : 0;
 
   const handleSubmit = () => {
     if (!taskId || hours <= 0) return;
+    if (selectedTask && !selectedTask.memberId) {
+      updateTask(taskId, { memberId });
+    }
     addPlacement(taskId, { date, hours: Math.min(hours, 8) });
     onClose();
   };
@@ -58,21 +65,23 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        {memberTasks.length === 0 ? (
+        {assignableTasks.length === 0 ? (
           <p className="text-sm text-gray-500 py-4">
-            {member?.name} に割り当てられたタスクがありません。先に「+ タスク追加」からタスクを作成してください。
+            配置できるタスクがありません。先に「+ タスク追加」からタスクを作成してください。
           </p>
         ) : (
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
               <Label>タスク</Label>
               <Select items={taskItems} value={taskId} onValueChange={(v) => v && setTaskId(v)}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {memberTasks.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  {assignableTasks.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.memberId ? t.title : `${t.title}（未定）`}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

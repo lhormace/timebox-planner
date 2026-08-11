@@ -50,12 +50,23 @@ export function TaskManagementDialog({ onClose, onEditTask }: Props) {
                       style={{ backgroundColor: project?.color }}
                     />
                     <span className="text-sm font-medium text-gray-800 truncate">{t.title}</span>
+                    {member ? (
+                      <Badge
+                        className="text-[10px] text-white"
+                        style={{ backgroundColor: member.color }}
+                      >
+                        {member.name}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] text-gray-500">
+                        担当未定
+                      </Badge>
+                    )}
                     {atRisk && (
                       <Badge variant="destructive" className="text-[10px]">要注意</Badge>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-1 mt-1 text-xs text-gray-500">
-                    <span>担当: {member?.name ?? "未定"}</span>
                     <span>工数: {t.estimatedHours}h</span>
                     <span>期限: {format(parseISO(t.deadline), "M/d(E)", { locale: ja })}</span>
                     <span>
