@@ -6,6 +6,7 @@ import { usePlannerStore } from "@/store/usePlannerStore";
 import { Member } from "@/types";
 import { getMemberFullName } from "@/lib/member";
 import { getCompletionDate, getPlacedHours, getTaskStatus, TASK_STATUS_LABEL } from "@/lib/planner";
+import { getMemberVariance } from "@/lib/projectFinance";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +36,7 @@ export function MemberDetailDialog({ member, onClose }: Props) {
   );
 
   const sortedTasks = [...memberTasks].sort((a, b) => a.deadline.localeCompare(b.deadline));
+  const variance = getMemberVariance(tasks, member.id);
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -49,6 +51,24 @@ export function MemberDetailDialog({ member, onClose }: Props) {
         <div className="text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-1">
           <span>会社: {member.company || "未設定"}</span>
           <span>部署: {member.department || "未設定"}</span>
+          <span>
+            人日単価: {member.dailyRateJpy !== undefined ? `¥${member.dailyRateJpy.toLocaleString("ja-JP")}` : "未設定"}
+          </span>
+        </div>
+
+        <div className="bg-gray-50 rounded px-3 py-2">
+          <p className="text-[11px] text-gray-500">実績消化率（実績時間を記録した配置のみが対象）</p>
+          {variance.variancePct === undefined ? (
+            <p className="text-sm text-gray-400">実績が未記入です</p>
+          ) : (
+            <p className={"text-lg font-bold " + (variance.variancePct <= 0 ? "text-emerald-600" : "text-red-600")}>
+              {variance.variancePct >= 0 ? "+" : ""}
+              {variance.variancePct.toFixed(1)}%
+              <span className="text-xs font-normal text-gray-500 ml-1">
+                （予定 {variance.plannedHours}h → 実績 {variance.actualHours}h）
+              </span>
+            </p>
+          )}
         </div>
 
         <div className="grid gap-1.5">

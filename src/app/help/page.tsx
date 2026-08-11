@@ -90,10 +90,30 @@ export default function HelpPage() {
 
         <Section title="管理画面">
           <ul className="list-disc list-inside space-y-1">
-            <li><strong>プロジェクト管理</strong> — プロジェクトの追加・名前とカラーの編集・削除</li>
-            <li><strong>メンバー管理</strong> — メンバーの追加・名前とカラーの編集・削除</li>
+            <li><strong>プロジェクト管理</strong> — プロジェクトの追加・編集・削除に加え、プロジェクト憲章・開始日/終了日・予算（任意）を登録できる</li>
+            <li><strong>メンバー管理</strong> — 姓名・会社名・部署名・人日単価（任意）を登録できる</li>
             <li><strong>タスク管理</strong> — 全タスクを一覧表示し、配置の有無に関わらず編集・削除できる</li>
           </ul>
+        </Section>
+
+        <Section title="プロジェクトの状況把握（詳細）">
+          <p>
+            プロジェクト管理の各プロジェクトの「詳細」から、以下を確認できます。
+          </p>
+          <ul className="list-disc list-inside space-y-1">
+            <li><strong>進捗率</strong> — プロジェクト内タスクの「配置済み時間 ÷ 見積時間」</li>
+            <li><strong>積算費用</strong> — 各タスクの配置時間（h）を担当者の人日単価から人日換算して合計（人日単価が未設定の担当者分は計上されません）</li>
+            <li><strong>予算・損益分岐点・利益率</strong> — プロジェクトの予算に対して積算費用がいくらか、黒字/赤字と利益率（％）を表示</li>
+            <li><strong>タスクとプロジェクト期間の整合</strong> — 各タスクの期限・完了予定日がプロジェクトの開始日〜終了日に収まっているかを「期間内 / 期間外」で表示</li>
+          </ul>
+        </Section>
+
+        <Section title="メンバーの実績記入と消化率">
+          <p>
+            タスクの配置管理ダイアログで、配置済みの各日に「実績（h）」を入力できます。
+            メンバー管理の「詳細」を開くと、実績を記入した配置のみを対象に、予定時間に対する実績時間の
+            差分（±％）を確認できます。
+          </p>
         </Section>
 
         <Section title="データ初期化">

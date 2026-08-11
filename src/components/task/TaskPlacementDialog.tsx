@@ -33,7 +33,8 @@ type Props = {
 };
 
 export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
-  const { projects, members, addPlacement, removePlacement, removeTask } = usePlannerStore();
+  const { projects, members, addPlacement, removePlacement, removeTask, setPlacementActualHours } =
+    usePlannerStore();
 
   const assignedMembers = members.filter((m) => task.memberIds?.includes(m.id));
 
@@ -101,7 +102,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
 
         {/* Existing placements */}
         <div className="space-y-1 max-h-48 overflow-y-auto">
-          <p className="text-xs font-medium text-gray-500 mb-1">配置済みの日</p>
+          <p className="text-xs font-medium text-gray-500 mb-1">配置済みの日（予定h / 実績h）</p>
           {sortedPlacements.length === 0 && (
             <p className="text-xs text-gray-400">まだ配置されていません</p>
           )}
@@ -122,6 +123,25 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{p.hours}h</span>
+                  <span className="text-gray-300">/</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={24}
+                    step={0.5}
+                    placeholder="実績"
+                    defaultValue={p.actualHours ?? ""}
+                    onBlur={(e) => {
+                      const v = e.target.value;
+                      setPlacementActualHours(
+                        task.id,
+                        p.memberId,
+                        p.date,
+                        v === "" ? undefined : Number(v)
+                      );
+                    }}
+                    className="w-16 h-6 text-xs px-1.5"
+                  />
                   <button
                     onClick={() => removePlacement(task.id, p.memberId, p.date)}
                     className="text-gray-400 hover:text-red-500 text-xs px-1"

@@ -22,6 +22,12 @@ type PlannerStore = {
   removeTask: (id: string) => void;
   addPlacement: (taskId: string, placement: Placement) => void;
   removePlacement: (taskId: string, memberId: string, date: string) => void;
+  setPlacementActualHours: (
+    taskId: string,
+    memberId: string,
+    date: string,
+    actualHours: number | undefined
+  ) => void;
   resetAll: () => void;
   loadData: (data: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings">) => void;
 };
@@ -117,6 +123,20 @@ export const usePlannerStore = create<PlannerStore>()(
                   ...t,
                   placements: t.placements.filter(
                     (p) => !(p.memberId === memberId && p.date === date)
+                  ),
+                }
+              : t
+          ),
+        })),
+
+      setPlacementActualHours: (taskId, memberId, date, actualHours) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId
+              ? {
+                  ...t,
+                  placements: t.placements.map((p) =>
+                    p.memberId === memberId && p.date === date ? { ...p, actualHours } : p
                   ),
                 }
               : t

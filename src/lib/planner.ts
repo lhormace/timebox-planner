@@ -13,6 +13,14 @@ export function getPlacedHours(task: Task): number {
   return task.placements.reduce((sum, p) => sum + p.hours, 0);
 }
 
+// For progress purposes, a placement with a recorded actual counts as its
+// actual hours; one without is assumed on-plan and counts as its scheduled
+// hours. This lets recorded actuals (over- or under-run) move progress
+// beyond what pure scheduling would show.
+export function getEffectiveHours(task: Task): number {
+  return task.placements.reduce((sum, p) => sum + (p.actualHours ?? p.hours), 0);
+}
+
 export function isFullyPlaced(task: Task): boolean {
   return getPlacedHours(task) >= task.estimatedHours;
 }

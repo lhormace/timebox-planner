@@ -5,12 +5,20 @@ export type Member = {
   company?: string;
   department?: string;
   color: string;
+  // Cost basis for project cost roll-ups (人日単価).
+  dailyRateJpy?: number;
 };
 
 export type Project = {
   id: string;
   name: string;
   color: string;
+  // Optional PMP-style project definition fields.
+  charter?: string;
+  startDate?: string; // ISO date string YYYY-MM-DD
+  endDate?: string;   // ISO date string YYYY-MM-DD
+  // 受注金額・予算 — compared against roll-up cost for margin/break-even.
+  budgetJpy?: number;
 };
 
 export type TaskTexture = "none" | "stripes" | "dots" | "grid";
@@ -36,7 +44,10 @@ export type Task = {
 export type Placement = {
   memberId: string;
   date: string;   // YYYY-MM-DD
-  hours: number;  // 0 < hours <= 8
+  hours: number;  // planned hours, 0 < hours <= 8
+  // Actual hours worked, entered after the fact — left unset until someone
+  // records it. Used to compute planned-vs-actual variance.
+  actualHours?: number;
 };
 
 // Company-specific calendar rules — what counts as a non-working day and

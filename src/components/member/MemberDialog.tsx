@@ -26,6 +26,7 @@ type FormState = {
   firstName: string;
   company: string;
   department: string;
+  dailyRateJpy: string;
   color: string;
 };
 
@@ -34,6 +35,7 @@ const emptyForm = (color: string): FormState => ({
   firstName: "",
   company: "",
   department: "",
+  dailyRateJpy: "",
   color,
 });
 
@@ -70,6 +72,13 @@ function MemberForm({
           placeholder="部署名"
         />
       </div>
+      <Input
+        type="number"
+        min={0}
+        value={form.dailyRateJpy}
+        onChange={(e) => onChange({ dailyRateJpy: e.target.value })}
+        placeholder="人日単価（円、任意）"
+      />
       <div className="flex flex-wrap gap-1.5">
         {PRESET_COLORS.map((c) => (
           <button
@@ -113,6 +122,7 @@ export function MemberDialog({ onClose }: Props) {
       firstName: form.firstName.trim(),
       company: form.company.trim(),
       department: form.department.trim(),
+      dailyRateJpy: form.dailyRateJpy ? Number(form.dailyRateJpy) : undefined,
       color: form.color,
     });
     setForm(emptyForm(PRESET_COLORS[members.length % PRESET_COLORS.length]));
@@ -125,6 +135,7 @@ export function MemberDialog({ onClose }: Props) {
       firstName: m.firstName,
       company: m.company ?? "",
       department: m.department ?? "",
+      dailyRateJpy: m.dailyRateJpy !== undefined ? String(m.dailyRateJpy) : "",
       color: m.color,
     });
   };
@@ -136,6 +147,7 @@ export function MemberDialog({ onClose }: Props) {
       firstName: editForm.firstName.trim(),
       company: editForm.company.trim(),
       department: editForm.department.trim(),
+      dailyRateJpy: editForm.dailyRateJpy ? Number(editForm.dailyRateJpy) : undefined,
       color: editForm.color,
     });
     setEditingId(undefined);
