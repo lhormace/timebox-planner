@@ -58,13 +58,16 @@ export function TaskDialog({ open, task, onClose }: Props) {
 
   const isDuplicateTitle = (candidate: string) =>
     tasks.some(
-      (t) => t.id !== task?.id && t.title.trim().toLowerCase() === candidate.trim().toLowerCase()
+      (t) =>
+        t.id !== task?.id &&
+        t.projectId === projectId &&
+        t.title.trim().toLowerCase() === candidate.trim().toLowerCase()
     );
 
   const handleSubmit = () => {
     if (!title || !projectId || !deadline) return;
     if (isDuplicateTitle(title)) {
-      setError("同じ名前のタスクが既に存在します");
+      setError("同じプロジェクト内に同じ名前のタスクが既に存在します");
       return;
     }
     if (isEdit && task) {

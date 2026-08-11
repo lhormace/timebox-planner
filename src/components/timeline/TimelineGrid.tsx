@@ -18,12 +18,21 @@ type Props = {
   startDate: Date;
   rangeDays: number;
   businessDaysOnly: boolean;
+  projectFilterId?: string;
   onCellClick: (memberId: string, date: string) => void;
   onTaskClick: (taskId: string) => void;
 };
 
-export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellClick, onTaskClick }: Props) {
-  const { members, tasks, projects, settings, addPlacement } = usePlannerStore();
+export function TimelineGrid({
+  startDate,
+  rangeDays,
+  businessDaysOnly,
+  projectFilterId,
+  onCellClick,
+  onTaskClick,
+}: Props) {
+  const { members, tasks: allTasks, projects, settings, addPlacement } = usePlannerStore();
+  const tasks = projectFilterId ? allTasks.filter((t) => t.projectId === projectFilterId) : allTasks;
 
   // Use a ref so mouseenter handlers always see the latest drag state
   const draggingRef = useRef<DragState | null>(null);
@@ -166,7 +175,7 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                   <td
                     key={dateStr}
                     className={cn(
-                      "border border-gray-200 p-0 align-top h-16 transition-colors relative",
+                      "border border-gray-200 p-0 align-top h-28 transition-colors relative",
                       !dragging && "cursor-pointer hover:bg-blue-50",
                       isDragTarget && "cursor-crosshair hover:bg-indigo-50",
                       dayColor === "saturday" && "bg-blue-50/40",
@@ -192,7 +201,7 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                           <div
                             key={task.id}
                             className={cn(
-                              "w-full flex items-start px-1 pt-0.5 overflow-hidden flex-shrink-0",
+                              "w-full flex flex-col items-start justify-start px-1 pt-0.5 overflow-hidden flex-shrink-0",
                               !dragging && "cursor-pointer hover:brightness-90 active:brightness-75",
                               isThisDragging && "cursor-crosshair brightness-110 ring-2 ring-white ring-inset",
                               overDl && "outline outline-1 outline-red-500 outline-offset-[-1px]"
@@ -203,8 +212,8 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                             }}
                             title={
                               dragging
-                                ? `ドラッグして延伸中: ${task.title}`
-                                : `${task.title} (${hours}h) — ドラッグ: 延伸 / クリック: 配置管理`
+                                ? `ドラッグして延伸中: ${project?.name ?? ""}－${task.title}`
+                                : `${project?.name ?? ""}－${task.title} (${hours}h) — ドラッグ: 延伸 / クリック: 配置管理`
                             }
                             onMouseDown={(e) => {
                               e.preventDefault();
@@ -216,7 +225,10 @@ export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellCli
                               if (!dragging) onTaskClick(task.id);
                             }}
                           >
-                            <span className="text-[10px] text-white leading-4 truncate">
+                            <span className="w-full text-[9px] text-white/80 leading-tight truncate">
+                              {project?.name}
+                            </span>
+                            <span className="w-full text-[10px] text-white leading-tight truncate">
                               {task.title} {hours}h
                             </span>
                           </div>

@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { getCompletionDate, getMemberFinishDate, isAtRisk } from "@/lib/planner";
 import { APP_VERSION, COMMIT_DATE } from "@/lib/buildInfo";
 import { VIEW_RANGES, ViewRangeKey } from "@/lib/viewRange";
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -38,6 +39,7 @@ export default function Home() {
   const [taskManagementOpen, setTaskManagementOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
+  const [projectFilterId, setProjectFilterId] = useState<string | undefined>();
   const [viewRangeKey, setViewRangeKey] = useState<ViewRangeKey>("week");
   const rangeDays = VIEW_RANGES.find((r) => r.key === viewRangeKey)?.days ?? 7;
   const viewRangeItems = Object.fromEntries(VIEW_RANGES.map((r) => [r.key, r.label]));
@@ -66,11 +68,28 @@ export default function Home() {
             v{APP_VERSION} · {COMMIT_DATE ? format(parseISO(COMMIT_DATE), "yyyy-MM-dd HH:mm") : "unknown"}
           </span>
           <div className="flex gap-2">
-            {projects.map((p) => (
-              <Badge key={p.id} style={{ backgroundColor: p.color }} className="text-white text-[10px]">
-                {p.name}
-              </Badge>
-            ))}
+            {projects.map((p) => {
+              const selected = projectFilterId === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setProjectFilterId(selected ? undefined : p.id)}
+                  title={selected ? "クリックで全プロジェクト表示に戻す" : `${p.name}のタスクのみ表示`}
+                >
+                  <Badge
+                    style={{ backgroundColor: p.color }}
+                    className={cn(
+                      "text-white text-[10px] cursor-pointer transition-opacity",
+                      projectFilterId && !selected && "opacity-40",
+                      selected && "ring-2 ring-offset-1 ring-gray-800"
+                    )}
+                  >
+                    {p.name}
+                  </Badge>
+                </button>
+              );
+            })}
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -206,6 +225,7 @@ export default function Home() {
           startDate={startDate}
           rangeDays={rangeDays}
           businessDaysOnly={businessDaysOnly}
+          projectFilterId={projectFilterId}
           onCellClick={handleCellClick}
           onTaskClick={(taskId) => setPlacementTaskId(taskId)}
         />
