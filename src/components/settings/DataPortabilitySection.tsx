@@ -23,18 +23,7 @@ export function DataPortabilitySection() {
 
   const currentData: PlannerData = { members, projects, tasks, settings };
 
-  const applyImport = (json: string) => {
-    try {
-      const data = parseImport(json);
-      if (!confirm("現在のデータを読み込んだファイルの内容で上書きします。よろしいですか？")) return;
-      loadData(data);
-      setError("");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "読み込みに失敗しました");
-    }
-  };
-
-  const handleExport = () => {
+  const writeToBlob = () => {
     const blob = new Blob([JSON.stringify(buildExport(currentData), null, 2)], {
       type: "application/json",
     });
@@ -46,21 +35,28 @@ export function DataPortabilitySection() {
     URL.revokeObjectURL(url);
   };
 
-  const handleImportClick = () => fileInputRef.current?.click();
-
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    applyImport(await file.text());
+  const applyImport = (json: string) => {
+    try {
+      const data = parseImport(json);
+      if (!confirm("現在のデータを読み込んだファイルの内容で上書きします。よろしいですか？")) return;
+      loadData(data);
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "読み込みに失敗しました");
+    }
   };
 
-  const handleSaveToFile = async () => {
-    if (!window.showSaveFilePicker) return;
+  // Without File System Access support, every save is a fresh download and
+  // every load is a fresh file picker — there's no persistent "linked" file.
+  const handleSave = async () => {
+    if (!supportsFileSystemAccess) {
+      writeToBlob();
+      return;
+    }
     try {
       let handle = fileHandleRef.current;
       if (!handle) {
-        handle = await window.showSaveFilePicker({
+        handle = await window.showSaveFilePicker!({
           suggestedName: exportFileName(),
           types: [JSON_ACCEPT],
         });
@@ -77,18 +73,30 @@ export function DataPortabilitySection() {
     }
   };
 
-  const handleOpenFromFile = async () => {
-    if (!window.showOpenFilePicker) return;
-    try {
-      const [handle] = await window.showOpenFilePicker({ types: [JSON_ACCEPT] });
-      const file = await handle.getFile();
-      applyImport(await file.text());
-      fileHandleRef.current = handle;
-      setLinkedFileName(handle.name);
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-      setError("ファイルの読み込みに失敗しました");
+  const handleLoadClick = () => {
+    if (!supportsFileSystemAccess) {
+      fileInputRef.current?.click();
+      return;
     }
+    (async () => {
+      try {
+        const [handle] = await window.showOpenFilePicker!({ types: [JSON_ACCEPT] });
+        const file = await handle.getFile();
+        applyImport(await file.text());
+        fileHandleRef.current = handle;
+        setLinkedFileName(handle.name);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
+        setError("ファイルの読み込みに失敗しました");
+      }
+    })();
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    applyImport(await file.text());
   };
 
   return (
@@ -96,11 +104,11 @@ export function DataPortabilitySection() {
       <Label>データの保存・読み込み</Label>
 
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1" onClick={handleExport}>
-          JSONをダウンロード
+        <Button variant="outline" size="sm" className="flex-1" onClick={handleSave}>
+          保存
         </Button>
-        <Button variant="outline" size="sm" className="flex-1" onClick={handleImportClick}>
-          JSONを読み込む
+        <Button variant="outline" size="sm" className="flex-1" onClick={handleLoadClick}>
+          読み込み
         </Button>
         <input
           ref={fileInputRef}
@@ -111,27 +119,13 @@ export function DataPortabilitySection() {
         />
       </div>
 
-      {supportsFileSystemAccess ? (
-        <div className="grid gap-1">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1" onClick={handleSaveToFile}>
-              {linkedFileName ? "同期ファイルに保存" : "ファイルを選んで保存"}
-            </Button>
-            <Button variant="outline" size="sm" className="flex-1" onClick={handleOpenFromFile}>
-              ファイルから同期して開く
-            </Button>
-          </div>
-          <p className="text-xs text-gray-400">
-            {linkedFileName
-              ? `同期中: ${linkedFileName}（このタブを閉じるまで有効）`
-              : "対応ブラウザ（Chrome/Edge）ではローカルのファイルに直接保存・同期できます"}
-          </p>
-        </div>
-      ) : (
-        <p className="text-xs text-gray-400">
-          このブラウザはローカルファイルへの直接保存に対応していません。上のJSONダウンロード/読み込みをご利用ください。
-        </p>
-      )}
+      <p className="text-xs text-gray-400">
+        {supportsFileSystemAccess
+          ? linkedFileName
+            ? `連携中のファイル: ${linkedFileName}（「保存」で上書き。このタブを閉じるまで有効）`
+            : "「保存」で保存先ファイルを選ぶと、以降はそのファイルに上書き保存されます"
+          : "このブラウザではファイルとの連携ができないため、保存のたびにダウンロード、読み込みのたびにファイル選択になります"}
+      </p>
 
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
