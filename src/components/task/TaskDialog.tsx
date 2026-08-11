@@ -25,23 +25,18 @@ import {
 type Props = {
   open: boolean;
   task?: Task;
-  defaultMemberId?: string;
-  defaultDate?: string;
   onClose: () => void;
 };
 
-export function TaskDialog({ open, task, defaultMemberId, defaultDate, onClose }: Props) {
+export function TaskDialog({ open, task, onClose }: Props) {
   const { members, projects, addTask, updateTask } = usePlannerStore();
   const isEdit = !!task;
 
   const [title, setTitle] = useState(task?.title ?? "");
   const [projectId, setProjectId] = useState(task?.projectId ?? projects[0]?.id ?? "");
-  const [memberId, setMemberId] = useState(
-    task?.memberId ?? defaultMemberId ?? members[0]?.id ?? ""
-  );
+  const [memberId, setMemberId] = useState(task?.memberId ?? members[0]?.id ?? "");
   const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
-  const [deadline, setDeadline] = useState(task?.deadline ?? defaultDate ?? "");
-  const [placementHours, setPlacementHours] = useState(8);
+  const [deadline, setDeadline] = useState(task?.deadline ?? "");
 
   const handleSubmit = () => {
     if (!title || !memberId || !projectId || !deadline) return;
@@ -55,9 +50,7 @@ export function TaskDialog({ open, task, defaultMemberId, defaultDate, onClose }
         memberId,
         estimatedHours,
         deadline,
-        placements: defaultDate
-          ? [{ date: defaultDate, hours: Math.min(placementHours, 8) }]
-          : [],
+        placements: [],
       });
     }
     onClose();
@@ -126,18 +119,6 @@ export function TaskDialog({ open, task, defaultMemberId, defaultDate, onClose }
               />
             </div>
           </div>
-          {!isEdit && defaultDate && (
-            <div className="grid gap-1.5">
-              <Label>{defaultDate} の配置時間 (最大8h)</Label>
-              <Input
-                type="number"
-                min={1}
-                max={8}
-                value={placementHours}
-                onChange={(e) => setPlacementHours(Number(e.target.value))}
-              />
-            </div>
-          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>キャンセル</Button>

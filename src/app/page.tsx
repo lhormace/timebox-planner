@@ -6,6 +6,7 @@ import { ja } from "date-fns/locale";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
 import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
+import { CellAssignDialog } from "@/components/task/CellAssignDialog";
 import { MemberDialog } from "@/components/member/MemberDialog";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
 import { usePlannerStore } from "@/store/usePlannerStore";
@@ -36,7 +37,6 @@ export default function Home() {
   const handleCellClick = (memberId: string, date: string) => {
     setSelectedMemberId(memberId);
     setSelectedDate(date);
-    setDialogOpen(true);
   };
 
   return (
@@ -63,14 +63,7 @@ export default function Home() {
           <Button variant="outline" size="sm" onClick={() => setMemberDialogOpen(true)}>
             メンバー管理
           </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              setSelectedMemberId(undefined);
-              setSelectedDate(undefined);
-              setDialogOpen(true);
-            }}
-          >
+          <Button size="sm" onClick={() => setDialogOpen(true)}>
             + タスク追加
           </Button>
         </div>
@@ -118,7 +111,7 @@ export default function Home() {
             </div>
           );
         })}
-        <span className="text-xs text-gray-400 ml-auto">空セル: 新規タスク　タスクブロック: 配置を管理</span>
+        <span className="text-xs text-gray-400 ml-auto">空セル: タスクを配置　タスクブロック: 配置を管理</span>
       </div>
 
       {/* At-risk tasks banner */}
@@ -159,12 +152,18 @@ export default function Home() {
         />
       </main>
 
-      <TaskDialog
-        open={dialogOpen}
-        defaultMemberId={selectedMemberId}
-        defaultDate={selectedDate}
-        onClose={() => setDialogOpen(false)}
-      />
+      <TaskDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
+
+      {selectedMemberId && selectedDate && (
+        <CellAssignDialog
+          memberId={selectedMemberId}
+          date={selectedDate}
+          onClose={() => {
+            setSelectedMemberId(undefined);
+            setSelectedDate(undefined);
+          }}
+        />
+      )}
 
       {(() => {
         const task = placementTaskId ? tasks.find((t) => t.id === placementTaskId) : undefined;
