@@ -19,6 +19,9 @@ export type Project = {
   endDate?: string;   // ISO date string YYYY-MM-DD
   // 受注金額・予算 — compared against roll-up cost for margin/break-even.
   budgetJpy?: number;
+  // 目標利益率（%）— the margin-rate threshold the break-even check is
+  // measured against, instead of a plain cost <= budget (0%) comparison.
+  targetMarginRate?: number;
 };
 
 export type TaskTexture = "none" | "stripes" | "dots" | "grid";

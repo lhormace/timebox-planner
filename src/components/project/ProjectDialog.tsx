@@ -29,6 +29,7 @@ type FormState = {
   startDate: string;
   endDate: string;
   budgetJpy: string;
+  targetMarginRate: string;
 };
 
 const emptyForm = (color: string): FormState => ({
@@ -38,6 +39,7 @@ const emptyForm = (color: string): FormState => ({
   startDate: "",
   endDate: "",
   budgetJpy: "",
+  targetMarginRate: "",
 });
 
 function ProjectForm({
@@ -95,15 +97,26 @@ function ProjectForm({
           <Input type="date" value={form.endDate} onChange={(e) => onChange({ endDate: e.target.value })} />
         </div>
       </div>
-      <div className="grid gap-1">
-        <Label className="text-xs text-gray-500">予算（円、任意）</Label>
-        <Input
-          type="number"
-          min={0}
-          value={form.budgetJpy}
-          onChange={(e) => onChange({ budgetJpy: e.target.value })}
-          placeholder="例: 3000000"
-        />
+      <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-1">
+          <Label className="text-xs text-gray-500">予算（円、任意）</Label>
+          <Input
+            type="number"
+            min={0}
+            value={form.budgetJpy}
+            onChange={(e) => onChange({ budgetJpy: e.target.value })}
+            placeholder="例: 3000000"
+          />
+        </div>
+        <div className="grid gap-1">
+          <Label className="text-xs text-gray-500">目標利益率（%、任意）</Label>
+          <Input
+            type="number"
+            value={form.targetMarginRate}
+            onChange={(e) => onChange({ targetMarginRate: e.target.value })}
+            placeholder="例: 20"
+          />
+        </div>
       </div>
     </div>
   );
@@ -128,6 +141,7 @@ export function ProjectDialog({ onClose }: Props) {
       startDate: form.startDate || undefined,
       endDate: form.endDate || undefined,
       budgetJpy: form.budgetJpy ? Number(form.budgetJpy) : undefined,
+      targetMarginRate: form.targetMarginRate ? Number(form.targetMarginRate) : undefined,
     });
     setForm(emptyForm(PRESET_COLORS[projects.length % PRESET_COLORS.length]));
   };
@@ -141,6 +155,7 @@ export function ProjectDialog({ onClose }: Props) {
       startDate: p.startDate ?? "",
       endDate: p.endDate ?? "",
       budgetJpy: p.budgetJpy !== undefined ? String(p.budgetJpy) : "",
+      targetMarginRate: p.targetMarginRate !== undefined ? String(p.targetMarginRate) : "",
     });
   };
 
@@ -153,6 +168,7 @@ export function ProjectDialog({ onClose }: Props) {
       startDate: editForm.startDate || undefined,
       endDate: editForm.endDate || undefined,
       budgetJpy: editForm.budgetJpy ? Number(editForm.budgetJpy) : undefined,
+      targetMarginRate: editForm.targetMarginRate ? Number(editForm.targetMarginRate) : undefined,
     });
     setEditingId(undefined);
   };
@@ -218,13 +234,15 @@ export function ProjectDialog({ onClose }: Props) {
           </div>
 
           {/* Add form */}
-          <div className="border-t pt-3 space-y-3">
-            <p className="text-xs font-medium text-gray-500">新しいプロジェクトを追加</p>
-            <ProjectForm form={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} />
-            <Button className="w-full" onClick={handleAdd} disabled={!form.name.trim()}>
-              追加
-            </Button>
-          </div>
+          {!editingId && (
+            <div className="border-t pt-3 space-y-3">
+              <p className="text-xs font-medium text-gray-500">新しいプロジェクトを追加</p>
+              <ProjectForm form={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} />
+              <Button className="w-full" onClick={handleAdd} disabled={!form.name.trim()}>
+                追加
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

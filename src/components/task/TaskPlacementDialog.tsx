@@ -33,8 +33,15 @@ type Props = {
 };
 
 export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
-  const { projects, members, addPlacement, removePlacement, removeTask, setPlacementActualHours } =
-    usePlannerStore();
+  const {
+    projects,
+    members,
+    addPlacement,
+    removePlacement,
+    removeTask,
+    setPlacementActualHours,
+    setPlacementHours,
+  } = usePlannerStore();
 
   const assignedMembers = members.filter((m) => task.memberIds?.includes(m.id));
 
@@ -122,7 +129,18 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
                   {format(parseISO(p.date), "M月d日(E)", { locale: ja })}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{p.hours}h</span>
+                  <Input
+                    type="number"
+                    min={0.5}
+                    max={24}
+                    step={0.5}
+                    defaultValue={p.hours}
+                    onBlur={(e) => {
+                      const v = Number(e.target.value);
+                      if (v > 0) setPlacementHours(task.id, p.memberId, p.date, v);
+                    }}
+                    className="w-16 h-6 text-xs px-1.5 font-medium"
+                  />
                   <span className="text-gray-300">/</span>
                   <Input
                     type="number"

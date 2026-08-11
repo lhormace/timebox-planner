@@ -63,7 +63,9 @@ export type ProjectFinance = {
   budget: number | undefined;
   margin: number | undefined; // budget - cost
   marginRate: number | undefined; // margin / budget * 100
-  breakEven: boolean | undefined; // cost <= budget
+  breakEven: boolean | undefined; // cost <= budget (marginRate >= 0%)
+  targetMarginRate: number | undefined;
+  meetsTarget: boolean | undefined; // marginRate >= targetMarginRate
 };
 
 export function getProjectFinance(tasks: Task[], members: Member[], project: Project): ProjectFinance {
@@ -72,7 +74,10 @@ export function getProjectFinance(tasks: Task[], members: Member[], project: Pro
   const margin = budget !== undefined ? budget - cost : undefined;
   const marginRate = budget !== undefined && budget !== 0 ? (margin! / budget) * 100 : undefined;
   const breakEven = budget !== undefined ? cost <= budget : undefined;
-  return { cost, budget, margin, marginRate, breakEven };
+  const targetMarginRate = project.targetMarginRate;
+  const meetsTarget =
+    marginRate !== undefined && targetMarginRate !== undefined ? marginRate >= targetMarginRate : undefined;
+  return { cost, budget, margin, marginRate, breakEven, targetMarginRate, meetsTarget };
 }
 
 export type ProjectMemberBreakdown = {

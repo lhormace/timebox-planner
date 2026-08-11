@@ -6,7 +6,7 @@ import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { cn } from "@/lib/utils";
-import { taskBlockStyle } from "@/lib/taskStyle";
+import { taskBlockStyle, complementaryColor } from "@/lib/taskStyle";
 import { businessDayTarget, FIT_TO_SCREEN_DAY_CAP } from "@/lib/viewRange";
 import { isNonWorkingDay, getDayColor } from "@/lib/calendar";
 import { getMemberFullName } from "@/lib/member";
@@ -202,7 +202,7 @@ export function TimelineGrid({
                           <div
                             key={task.id}
                             className={cn(
-                              "w-full flex flex-col items-start justify-start px-1 pt-0.5 overflow-hidden flex-shrink-0",
+                              "w-full flex flex-col items-start justify-start px-1 pt-0.5 overflow-hidden flex-shrink-0 relative",
                               !dragging && "cursor-pointer hover:brightness-90 active:brightness-75",
                               isThisDragging && "cursor-crosshair brightness-110 ring-2 ring-white ring-inset",
                               overDl && "outline outline-1 outline-red-500 outline-offset-[-1px]"
@@ -214,7 +214,9 @@ export function TimelineGrid({
                             title={
                               dragging
                                 ? `ドラッグして延伸中: ${project?.name ?? ""}－${task.title}`
-                                : `${project?.name ?? ""}－${task.title} (${hours}h) — ドラッグ: 延伸 / クリック: 配置管理`
+                                : `${project?.name ?? ""}－${task.title} (${hours}h${
+                                    placement?.actualHours !== undefined ? ` / 実績${placement.actualHours}h` : ""
+                                  }) — ドラッグ: 延伸 / クリック: 配置管理`
                             }
                             onMouseDown={(e) => {
                               e.preventDefault();
@@ -226,10 +228,20 @@ export function TimelineGrid({
                               if (!dragging) onTaskClick(task.id);
                             }}
                           >
-                            <span className="w-full text-[9px] text-white/80 leading-tight truncate">
+                            {placement?.actualHours !== undefined && hours > 0 && (
+                              <div
+                                className="absolute inset-y-0 left-0 z-0"
+                                style={{
+                                  width: `${Math.min(100, (placement.actualHours / hours) * 100)}%`,
+                                  backgroundColor: complementaryColor(blockColor),
+                                  opacity: 0.45,
+                                }}
+                              />
+                            )}
+                            <span className="relative z-10 w-full text-[9px] text-white/80 leading-tight truncate">
                               {project?.name}
                             </span>
-                            <span className="w-full text-[10px] text-white leading-tight truncate">
+                            <span className="relative z-10 w-full text-[10px] text-white leading-tight truncate">
                               {task.title} {hours}h
                             </span>
                           </div>

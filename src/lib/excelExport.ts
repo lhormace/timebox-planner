@@ -40,6 +40,8 @@ export function exportProjectReport(project: Project, tasks: Task[], members: Me
     ["損益(円)", finance.margin !== undefined ? Math.round(finance.margin) : ""],
     ["利益率(%)", finance.marginRate !== undefined ? Math.round(finance.marginRate * 10) / 10 : ""],
     ["損益分岐", finance.breakEven === undefined ? "" : finance.breakEven ? "黒字" : "赤字"],
+    ["目標利益率(%)", finance.targetMarginRate ?? ""],
+    ["目標達成", finance.meetsTarget === undefined ? "" : finance.meetsTarget ? "達成" : "未達"],
   ];
   const overviewSheet = XLSX.utils.aoa_to_sheet(overviewRows);
   XLSX.utils.book_append_sheet(wb, overviewSheet, "概要");

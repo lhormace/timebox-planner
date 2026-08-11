@@ -225,17 +225,19 @@ export function MemberDialog({ onClose }: Props) {
           </div>
 
           {/* Add form */}
-          <div className="border-t pt-3 space-y-3">
-            <p className="text-xs font-medium text-gray-500">新しいメンバーを追加</p>
-            <MemberForm form={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} />
-            <Button
-              className="w-full"
-              onClick={handleAdd}
-              disabled={!form.lastName.trim() && !form.firstName.trim()}
-            >
-              追加
-            </Button>
-          </div>
+          {!editingId && (
+            <div className="border-t pt-3 space-y-3">
+              <p className="text-xs font-medium text-gray-500">新しいメンバーを追加</p>
+              <MemberForm form={form} onChange={(patch) => setForm((f) => ({ ...f, ...patch }))} />
+              <Button
+                className="w-full"
+                onClick={handleAdd}
+                disabled={!form.lastName.trim() && !form.firstName.trim()}
+              >
+                追加
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

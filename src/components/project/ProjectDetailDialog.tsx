@@ -108,14 +108,19 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
             {budgetUsedPct !== undefined && (
               <div className="mt-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
                 <div
-                  className={cn("h-full rounded-full", finance.breakEven ? "bg-emerald-500" : "bg-red-500")}
+                  className={cn(
+                    "h-full rounded-full",
+                    (finance.meetsTarget ?? finance.breakEven) ? "bg-emerald-500" : "bg-red-500"
+                  )}
                   style={{ width: `${budgetUsedPct}%` }}
                 />
               </div>
             )}
           </div>
           <div className="bg-gray-50 rounded px-3 py-2">
-            <p className="text-[11px] text-gray-500">利益率</p>
+            <p className="text-[11px] text-gray-500">
+              利益率{finance.targetMarginRate !== undefined ? `（目標 ${finance.targetMarginRate}%）` : ""}
+            </p>
             {finance.marginRate !== undefined ? (
               <p className={"text-lg font-bold " + (finance.marginRate >= 0 ? "text-emerald-600" : "text-red-600")}>
                 {finance.marginRate >= 0 ? "+" : ""}
@@ -126,6 +131,11 @@ export function ProjectDetailDialog({ project, onClose }: Props) {
               </p>
             ) : (
               <p className="text-lg font-bold text-gray-400">予算未設定</p>
+            )}
+            {finance.meetsTarget !== undefined && (
+              <p className={"text-[11px] " + (finance.meetsTarget ? "text-emerald-600" : "text-red-600")}>
+                {finance.meetsTarget ? "✓ 目標利益率を達成" : "✗ 目標利益率未達"}
+              </p>
             )}
           </div>
         </div>
