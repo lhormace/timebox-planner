@@ -37,6 +37,7 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
   const [taskId, setTaskId] = useState(memberTasks[0]?.id ?? "");
   const [hours, setHours] = useState(8);
 
+  const taskItems = Object.fromEntries(memberTasks.map((t) => [t.id, t.title]));
   const selectedTask = memberTasks.find((t) => t.id === taskId);
   const remaining = selectedTask
     ? selectedTask.estimatedHours - getPlacedHours(selectedTask)
@@ -65,7 +66,7 @@ export function CellAssignDialog({ memberId, date, onClose }: Props) {
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
               <Label>タスク</Label>
-              <Select value={taskId} onValueChange={(v) => v && setTaskId(v)}>
+              <Select items={taskItems} value={taskId} onValueChange={(v) => v && setTaskId(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

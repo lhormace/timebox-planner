@@ -29,7 +29,7 @@ type Props = {
 };
 
 export function TaskDialog({ open, task, onClose }: Props) {
-  const { members, projects, addTask, updateTask } = usePlannerStore();
+  const { tasks, members, projects, addTask, updateTask } = usePlannerStore();
   const isEdit = !!task;
 
   const [title, setTitle] = useState(task?.title ?? "");
@@ -37,9 +37,22 @@ export function TaskDialog({ open, task, onClose }: Props) {
   const [memberId, setMemberId] = useState(task?.memberId ?? members[0]?.id ?? "");
   const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
+  const [error, setError] = useState("");
+
+  const projectItems = Object.fromEntries(projects.map((p) => [p.id, p.name]));
+  const memberItems = Object.fromEntries(members.map((m) => [m.id, m.name]));
+
+  const isDuplicateTitle = (candidate: string) =>
+    tasks.some(
+      (t) => t.id !== task?.id && t.title.trim().toLowerCase() === candidate.trim().toLowerCase()
+    );
 
   const handleSubmit = () => {
     if (!title || !memberId || !projectId || !deadline) return;
+    if (isDuplicateTitle(title)) {
+      setError("同じ名前のタスクが既に存在します");
+      return;
+    }
     if (isEdit && task) {
       updateTask(task.id, { title, projectId, memberId, estimatedHours, deadline });
     } else {
@@ -67,14 +80,18 @@ export function TaskDialog({ open, task, onClose }: Props) {
             <Label>タスク名</Label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setError("");
+              }}
               placeholder="例: API設計"
             />
+            {error && <p className="text-xs text-red-500">{error}</p>}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>プロジェクト</Label>
-              <Select value={projectId} onValueChange={(v) => v && setProjectId(v)}>
+              <Select items={projectItems} value={projectId} onValueChange={(v) => v && setProjectId(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -87,7 +104,7 @@ export function TaskDialog({ open, task, onClose }: Props) {
             </div>
             <div className="grid gap-1.5">
               <Label>担当者</Label>
-              <Select value={memberId} onValueChange={(v) => v && setMemberId(v)}>
+              <Select items={memberItems} value={memberId} onValueChange={(v) => v && setMemberId(v)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

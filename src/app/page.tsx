@@ -6,6 +6,7 @@ import { ja } from "date-fns/locale";
 import { TimelineGrid } from "@/components/timeline/TimelineGrid";
 import { TaskDialog } from "@/components/task/TaskDialog";
 import { TaskPlacementDialog } from "@/components/task/TaskPlacementDialog";
+import { TaskManagementDialog } from "@/components/task/TaskManagementDialog";
 import { CellAssignDialog } from "@/components/task/CellAssignDialog";
 import { MemberDialog } from "@/components/member/MemberDialog";
 import { ProjectDialog } from "@/components/project/ProjectDialog";
@@ -23,9 +24,10 @@ export default function Home() {
   const [editingTaskId, setEditingTaskId] = useState<string | undefined>();
   const [memberDialogOpen, setMemberDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [taskManagementOpen, setTaskManagementOpen] = useState(false);
   const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
 
-  const { tasks, projects, members } = usePlannerStore();
+  const { tasks, projects, members, resetAll } = usePlannerStore();
 
   const totalPlaced = tasks.reduce(
     (sum, t) => sum + t.placements.reduce((s, p) => s + p.hours, 0),
@@ -63,8 +65,22 @@ export default function Home() {
           <Button variant="outline" size="sm" onClick={() => setMemberDialogOpen(true)}>
             メンバー管理
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setTaskManagementOpen(true)}>
+            タスク管理
+          </Button>
           <Button size="sm" onClick={() => setDialogOpen(true)}>
             + タスク追加
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (confirm("すべてのデータを初期化します。よろしいですか？")) {
+                resetAll();
+              }
+            }}
+          >
+            データ初期化
           </Button>
         </div>
       </header>
@@ -192,6 +208,15 @@ export default function Home() {
 
       {memberDialogOpen && <MemberDialog onClose={() => setMemberDialogOpen(false)} />}
       {projectDialogOpen && <ProjectDialog onClose={() => setProjectDialogOpen(false)} />}
+      {taskManagementOpen && (
+        <TaskManagementDialog
+          onClose={() => setTaskManagementOpen(false)}
+          onEditTask={(taskId) => {
+            setEditingTaskId(taskId);
+            setTaskManagementOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

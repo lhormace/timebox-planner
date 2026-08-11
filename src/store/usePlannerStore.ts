@@ -17,19 +17,24 @@ type PlannerStore = {
   removeTask: (id: string) => void;
   addPlacement: (taskId: string, placement: Placement) => void;
   removePlacement: (taskId: string, date: string) => void;
+  resetAll: () => void;
+};
+
+const initialState: Pick<PlannerStore, "members" | "projects" | "tasks"> = {
+  members: [
+    { id: "m1", name: "Alice", color: "#6366f1" },
+    { id: "m2", name: "Bob", color: "#f59e0b" },
+  ],
+  projects: [
+    { id: "p1", name: "プロジェクトA", color: "#10b981" },
+  ],
+  tasks: [],
 };
 
 export const usePlannerStore = create<PlannerStore>()(
   persist(
     (set) => ({
-      members: [
-        { id: "m1", name: "Alice", color: "#6366f1" },
-        { id: "m2", name: "Bob", color: "#f59e0b" },
-      ],
-      projects: [
-        { id: "p1", name: "プロジェクトA", color: "#10b981" },
-      ],
-      tasks: [],
+      ...initialState,
 
       addMember: (member) =>
         set((s) => ({ members: [...s.members, member] })),
@@ -80,6 +85,8 @@ export const usePlannerStore = create<PlannerStore>()(
               : t
           ),
         })),
+
+      resetAll: () => set(initialState),
     }),
     { name: "timebox-planner" }
   )
