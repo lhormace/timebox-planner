@@ -21,6 +21,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  TASK_COLOR_PALETTE,
+  TASK_TEXTURES,
+  randomTaskColor,
+  randomTaskTexture,
+  taskBlockStyle,
+} from "@/lib/taskStyle";
 
 type Props = {
   open: boolean;
@@ -37,10 +44,13 @@ export function TaskDialog({ open, task, onClose }: Props) {
   const [memberId, setMemberId] = useState(task?.memberId ?? "");
   const [estimatedHours, setEstimatedHours] = useState(task?.estimatedHours ?? 8);
   const [deadline, setDeadline] = useState(task?.deadline ?? "");
+  const [color, setColor] = useState(task?.color ?? randomTaskColor());
+  const [texture, setTexture] = useState(task?.texture ?? randomTaskTexture());
   const [error, setError] = useState("");
 
   const projectItems = Object.fromEntries(projects.map((p) => [p.id, p.name]));
   const memberItems = Object.fromEntries(members.map((m) => [m.id, m.name]));
+  const textureItems = Object.fromEntries(TASK_TEXTURES.map((t) => [t.value, t.label]));
 
   const isDuplicateTitle = (candidate: string) =>
     tasks.some(
@@ -60,6 +70,8 @@ export function TaskDialog({ open, task, onClose }: Props) {
         memberId: memberId || undefined,
         estimatedHours,
         deadline,
+        color,
+        texture,
       });
     } else {
       addTask({
@@ -69,6 +81,8 @@ export function TaskDialog({ open, task, onClose }: Props) {
         estimatedHours,
         deadline,
         placements: [],
+        color,
+        texture,
       });
     }
     onClose();
@@ -125,6 +139,51 @@ export function TaskDialog({ open, task, onClose }: Props) {
               </Select>
             </div>
           )}
+          <div className="grid gap-1.5">
+            <div className="flex items-center justify-between">
+              <Label>色・テクスチャ</Label>
+              <span
+                className="w-16 h-6 rounded border border-gray-200"
+                style={taskBlockStyle(color, texture)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {TASK_COLOR_PALETTE.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className="w-6 h-6 rounded-full transition-transform hover:scale-110"
+                  style={{
+                    backgroundColor: c,
+                    outline: color === c ? "2px solid #1f2937" : "2px solid transparent",
+                    outlineOffset: "2px",
+                  }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-6 h-6 rounded-full cursor-pointer border-0 p-0 bg-transparent"
+                title="カスタムカラー"
+              />
+            </div>
+            <Select
+              items={textureItems}
+              value={texture}
+              onValueChange={(v) => v && setTexture(v as typeof texture)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TASK_TEXTURES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-1.5">
               <Label>総工数 (時間)</Label>

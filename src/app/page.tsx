@@ -15,6 +15,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getCompletionDate, getMemberFinishDate, isAtRisk } from "@/lib/planner";
 import { APP_VERSION, COMMIT_DATE } from "@/lib/buildInfo";
+import { VIEW_RANGES, ViewRangeKey } from "@/lib/viewRange";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Home() {
   const [startDate, setStartDate] = useState(startOfToday());
@@ -27,6 +35,9 @@ export default function Home() {
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [taskManagementOpen, setTaskManagementOpen] = useState(false);
   const [businessDaysOnly, setBusinessDaysOnly] = useState(false);
+  const [viewRangeKey, setViewRangeKey] = useState<ViewRangeKey>("week");
+  const rangeDays = VIEW_RANGES.find((r) => r.key === viewRangeKey)?.days ?? 7;
+  const viewRangeItems = Object.fromEntries(VIEW_RANGES.map((r) => [r.key, r.label]));
 
   const { tasks, projects, members, resetAll } = usePlannerStore();
 
@@ -91,8 +102,8 @@ export default function Home() {
 
       {/* Navigation */}
       <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={() => setStartDate((d) => subDays(d, 7))}>
-          ← 前週
+        <Button variant="outline" size="sm" onClick={() => setStartDate((d) => subDays(d, rangeDays))}>
+          ← 過去へ
         </Button>
         <Button variant="outline" size="sm" onClick={() => setStartDate(startOfToday())}>
           今日
@@ -100,9 +111,24 @@ export default function Home() {
         <span className="text-sm text-gray-600 font-medium">
           {format(startDate, "yyyy年M月d日")} 〜
         </span>
-        <Button variant="outline" size="sm" onClick={() => setStartDate((d) => addDays(d, 7))}>
-          次週 →
+        <Button variant="outline" size="sm" onClick={() => setStartDate((d) => addDays(d, rangeDays))}>
+          未来へ →
         </Button>
+
+        <Select
+          items={viewRangeItems}
+          value={viewRangeKey}
+          onValueChange={(v) => v && setViewRangeKey(v as ViewRangeKey)}
+        >
+          <SelectTrigger size="sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {VIEW_RANGES.map((r) => (
+              <SelectItem key={r.key} value={r.key}>{r.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <label className="ml-auto flex items-center gap-2 cursor-pointer select-none">
           <input
@@ -166,6 +192,7 @@ export default function Home() {
       <main className="px-6 pb-8">
         <TimelineGrid
           startDate={startDate}
+          rangeDays={rangeDays}
           businessDaysOnly={businessDaysOnly}
           onCellClick={handleCellClick}
           onTaskClick={(taskId) => setPlacementTaskId(taskId)}

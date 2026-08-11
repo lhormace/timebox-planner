@@ -10,6 +10,8 @@ export type Project = {
   color: string;
 };
 
+export type TaskTexture = "none" | "stripes" | "dots" | "grid";
+
 export type Task = {
   id: string;
   title: string;
@@ -20,6 +22,10 @@ export type Task = {
   estimatedHours: number;
   deadline: string; // ISO date string YYYY-MM-DD
   placements: Placement[];
+  // Randomized at creation so tasks within the same project stay visually
+  // distinguishable on the grid; editable afterwards.
+  color?: string;
+  texture?: TaskTexture;
 };
 
 // A placement is one "block" on the grid: member × day × hours

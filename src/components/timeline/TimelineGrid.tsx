@@ -6,6 +6,8 @@ import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { cn } from "@/lib/utils";
+import { taskBlockStyle } from "@/lib/taskStyle";
+import { businessDayTarget } from "@/lib/viewRange";
 
 const HOURS_PER_DAY = 8;
 
@@ -15,12 +17,13 @@ type DragState = { taskId: string; memberId: string; hours: number };
 
 type Props = {
   startDate: Date;
+  rangeDays: number;
   businessDaysOnly: boolean;
   onCellClick: (memberId: string, date: string) => void;
   onTaskClick: (taskId: string) => void;
 };
 
-export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskClick }: Props) {
+export function TimelineGrid({ startDate, rangeDays, businessDaysOnly, onCellClick, onTaskClick }: Props) {
   const { members, tasks, projects, addPlacement } = usePlannerStore();
 
   // Use a ref so mouseenter handlers always see the latest drag state
@@ -30,13 +33,13 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
   const days = useMemo(() => {
     const result: Date[] = [];
     let cursor = startDate;
-    const target = businessDaysOnly ? 20 : 28;
+    const target = businessDaysOnly ? businessDayTarget(rangeDays) : rangeDays;
     while (result.length < target) {
       if (!businessDaysOnly || !isWeekend(cursor)) result.push(cursor);
       cursor = addDays(cursor, 1);
     }
     return result;
-  }, [startDate, businessDaysOnly]);
+  }, [startDate, rangeDays, businessDaysOnly]);
 
   // Clear drag on mouseup anywhere in the document
   useEffect(() => {
@@ -144,6 +147,7 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
                         const hours = placement?.hours ?? 0;
                         const heightPct = Math.min((hours / HOURS_PER_DAY) * 100, 100);
                         const project = projects.find((p) => p.id === task.projectId);
+                        const blockColor = task.color ?? project?.color ?? "#6366f1";
                         const overDl = isOverDeadline(task, d);
                         const isThisDragging = dragging?.taskId === task.id;
                         return (
@@ -156,7 +160,7 @@ export function TimelineGrid({ startDate, businessDaysOnly, onCellClick, onTaskC
                               overDl && "outline outline-1 outline-red-500 outline-offset-[-1px]"
                             )}
                             style={{
-                              backgroundColor: project?.color ?? "#6366f1",
+                              ...taskBlockStyle(blockColor, task.texture),
                               height: `${heightPct}%`,
                             }}
                             title={

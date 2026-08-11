@@ -6,6 +6,7 @@ import { ja } from "date-fns/locale";
 import { usePlannerStore } from "@/store/usePlannerStore";
 import { Task } from "@/types";
 import { getCompletionDate } from "@/lib/planner";
+import { taskBlockStyle } from "@/lib/taskStyle";
 import {
   Dialog,
   DialogContent,
@@ -55,7 +56,7 @@ export function TaskPlacementDialog({ task, onClose, onEdit }: Props) {
           <DialogTitle className="flex items-center gap-2">
             <span
               className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: project?.color }}
+              style={taskBlockStyle(task.color ?? project?.color ?? "#6366f1", task.texture)}
             />
             {task.title}
           </DialogTitle>
