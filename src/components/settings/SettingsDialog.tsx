@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { DataPortabilitySection } from "@/components/settings/DataPortabilitySection";
 
 const WEEKDAY_LABELS = ["日", "月", "火", "水", "木", "金", "土"];
 const MONTH_ITEMS = Object.fromEntries(
@@ -132,6 +133,10 @@ export function SettingsDialog({ onClose }: Props) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="border-t pt-4">
+            <DataPortabilitySection />
           </div>
         </div>
       </DialogContent>

@@ -23,6 +23,7 @@ type PlannerStore = {
   addPlacement: (taskId: string, placement: Placement) => void;
   removePlacement: (taskId: string, memberId: string, date: string) => void;
   resetAll: () => void;
+  loadData: (data: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings">) => void;
 };
 
 const initialState: Pick<PlannerStore, "members" | "projects" | "tasks" | "settings"> = {
@@ -123,6 +124,7 @@ export const usePlannerStore = create<PlannerStore>()(
         })),
 
       resetAll: () => set(initialState),
+      loadData: (data) => set(data),
     }),
     { name: "timebox-planner" }
   )
